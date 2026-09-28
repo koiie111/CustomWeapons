@@ -1,0 +1,13 @@
+**/bin/
+**/obj/
+**/TestResults/
+.vs/
+.idea/
+artifacts/
+**/data/
+*.user
+*.suo
+.env
+.env.*
+!*.example
+CustomWeapons.local.json

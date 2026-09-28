@@ -1,0 +1,75 @@
+{
+  "ConfigVersion": 1,
+  "ServerId": 1,
+  "CooldownSeconds": 1,
+  "SaveSelections": true,
+  "RefreshIntervalSeconds": 60,
+  "Database": {
+    "Host": "127.0.0.1",
+    "Port": 3306,
+    "Database": "customweapons",
+    "Username": "customweapons",
+    "Password": "",
+    "PasswordEnvironmentVariable": "CW_DB_PASSWORD",
+    "SslMode": "Preferred",
+    "TimeoutSeconds": 10
+  },
+  "Weapons": {
+    "weapon_ak47": {
+      "Name": "AK-47",
+      "Skins": {
+        "daedalos": {
+          "Name": "AK-47 - Дедал",
+          "Model": "models/kolka/weapons/val_weapon2/daedalus/daedalos.vmdl",
+          "Private": true,
+          "Hide": true
+        },
+        "ak_12": {
+          "Name": "AK-47 - Светоснежка",
+          "Model": "models/weapons/kolka/weapons_3/ak/ak_12.vmdl",
+          "Private": true,
+          "Hide": true
+        }
+      }
+    },
+    "weapon_m4a1_silencer": {
+      "Name": "M4A1-S",
+      "Skins": {
+        "m4a1s_daeldalus": {
+          "Name": "M4A1-S - Дедал",
+          "Model": "models/kolka/weapons/val_weapon2/daedalus_m4a1/m4a1s_daeldalus.vmdl",
+          "Private": true,
+          "Hide": true
+        }
+      }
+    },
+    "weapon_awp": {
+      "Name": "AWP",
+      "Skins": {
+        "awp_insane": {
+          "Name": "AWP - Insane",
+          "Model": "models/kolka/valorant/awp_isane/awp_insane.vmdl",
+          "Private": true,
+          "Hide": true
+        },
+        "awp_animes": {
+          "Name": "AWP - Перлика",
+          "Model": "models/weapons/kolka/pak_4/awp/awp_animes.vmdl",
+          "Private": true,
+          "Hide": true
+        }
+      }
+    },
+    "weapon_ssg08": {
+      "Name": "SSG-08",
+      "Skins": {
+        "scout_anim": {
+          "Name": "SSG-08 - Криоангел",
+          "Model": "models/weapons/kolka/pak_4/scout/scout_anim.vmdl",
+          "Private": true,
+          "Hide": true
+        }
+      }
+    }
+  }
+}
