@@ -38,7 +38,7 @@
 | CS2 dedicated server | Linux x64 или Windows x64 |
 | Metamod:Source | актуальная |
 | CounterStrikeSharp | **1.0.375+** с runtime .NET 10 |
-| MySQL | 8.x (в CI — 8.4; MariaDB не проверялась) |
+| MySQL | 8.x (в CI — 8.4) |
 | Контент моделей | `.vmdl` и зависимости доступны **серверу и клиентам** (например, через Workshop) |
 
 Файлы моделей в релиз не входят — права на них принадлежат их авторам.
