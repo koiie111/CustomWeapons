@@ -16,7 +16,7 @@ namespace CustomWeapons;
 public sealed class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig>
 {
     public override string ModuleName => "CustomWeapons";
-    public override string ModuleVersion => "1.0.1";
+    public override string ModuleVersion => "1.0.2";
     public override string ModuleAuthor => "koiie111";
     public override string ModuleDescription => "Custom weapon models with MySQL access and local selections";
     public PluginConfig Config { get; set; } = new();
@@ -39,6 +39,7 @@ public sealed class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig
     private SelectionStore _selections = null!;
     private IAccessRepository _repository = null!;
     private DatabaseSnapshot? _catalog;
+    private RuntimeLifecycle? _lifecycle;
     private volatile bool _active;
     private bool _refreshRunning;
     private bool _refreshAgain;
@@ -62,6 +63,8 @@ public sealed class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig
         _selections = new SelectionStore(Path.Combine(ModuleDirectory, "data", "selections.json"), Config.SaveSelections,
             ex => Logger.LogError("Selection storage error ({Type}). Check data directory permissions and backups.", ex.GetType().Name));
         _active = true;
+        _lifecycle = new RuntimeLifecycle(InitializeRuntime, RefreshPlayers);
+        RegisterListener<Listeners.OnMapStart>(_ => _lifecycle.MapStarted());
         RegisterListener<Listeners.OnServerPrecacheResources>(manifest =>
         {
             _precached.Clear();
@@ -73,12 +76,24 @@ public sealed class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig
         });
         RegisterListener<Listeners.OnMapEnd>(() =>
         {
+            _lifecycle.MapEnded();
             _mapGeneration++;
             _applied.Clear();
             _precached.Clear();
             _modelWarnings.Clear();
             _grenades.Clear();
         });
+        AddCommand("css_cw", "Открыть меню CustomWeapons", (player, _) => OpenWeapons(player));
+        AddCommand("css_customweapons", "Открыть меню CustomWeapons", (player, _) => OpenWeapons(player));
+        // Do not enumerate players or register game events in cold Load. If Load fails,
+        // CSS 375 can retain pending native event hooks after freeing their delegates.
+        _lifecycle.Load(hotReload, callback => Server.NextWorldUpdate(callback));
+        if (hotReload) Logger.LogWarning("CustomWeapons loaded mid-map: change map to precache custom models before applying skins.");
+        Logger.LogInformation("CustomWeapons {Version} loaded; waiting for map readiness.", ModuleVersion);
+    }
+
+    private void InitializeRuntime()
+    {
         RegisterListener<Listeners.OnClientDisconnect>(slot =>
         {
             if (_sessions.Remove(slot, out var session))
@@ -89,7 +104,7 @@ public sealed class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig
         });
         RegisterListener<Listeners.OnClientAuthorized>((slot, _) => Server.NextWorldUpdate(() =>
         {
-            if (_active) { EnsureSession(Utilities.GetPlayerFromSlot(slot)); RequestRefresh(); }
+            if (_active && _lifecycle?.MapReady == true) { EnsureSession(Utilities.GetPlayerFromSlot(slot)); RequestRefresh(); }
         }));
         RegisterEventHandler<EventPlayerConnectFull>((ev, _) =>
         {
@@ -100,12 +115,11 @@ public sealed class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig
         RegisterListener<Listeners.OnEntityDeleted>(entity => _applied.Remove(entity.EntityHandle.Raw));
         RegisterListener<Listeners.OnEntitySpawned>(OnEntitySpawned);
         RegisterListener<Listeners.OnTick>(ObserveHeldGrenades);
-        AddCommand("css_cw", "Открыть меню CustomWeapons", (player, _) => OpenWeapons(player));
-        AddCommand("css_customweapons", "Открыть меню CustomWeapons", (player, _) => OpenWeapons(player));
         AddTimer(Config.RefreshIntervalSeconds, RequestRefresh, TimerFlags.REPEAT);
         // Covers weapons granted by other plugins and joins while an earlier DB read was pending.
         AddTimer(0.5f, () =>
         {
+            if (!_active || _lifecycle?.MapReady != true) return;
             foreach (var player in Utilities.GetPlayers())
             {
                 var existed = _sessions.ContainsKey(player.Slot);
@@ -117,13 +131,18 @@ public sealed class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig
             }
             _grenades.Prune(Now);
         }, TimerFlags.REPEAT);
+    }
+
+    private void RefreshPlayers()
+    {
         foreach (var player in Utilities.GetPlayers()) EnsureSession(player);
         RequestRefresh();
-        if (hotReload) Logger.LogWarning("CustomWeapons loaded mid-map: change map to precache custom models before applying skins.");
+        Logger.LogInformation("CustomWeapons runtime ready; player access refresh started.");
     }
 
     private Session? EnsureSession(CCSPlayerController? player)
     {
+        if (!_active || _lifecycle?.MapReady != true) return null;
         if (player is not { IsValid: true, IsBot: false, IsHLTV: false } || player.SteamID == 0) return null;
         var steamId = player.SteamID.ToString(CultureInfo.InvariantCulture);
         if (_sessions.TryGetValue(player.Slot, out var existing) && existing.SteamId == steamId &&
@@ -140,7 +159,7 @@ public sealed class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig
 
     private void RequestRefresh()
     {
-        if (!_active) return;
+        if (!_active || _lifecycle?.MapReady != true) return;
         if (_refreshRunning) { _refreshAgain = true; return; }
         _refreshRunning = true;
         var sessions = _sessions.ToArray();
@@ -168,6 +187,7 @@ public sealed class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig
                 {
                     if (!_sessions.TryGetValue(slot, out var current) || !ReferenceEquals(current, session)) continue;
                     if (result != null) session.Access.Succeed(result); else session.Access.Fail();
+                    if (_lifecycle?.MapReady != true) continue;
                     var player = new CHandle<CCSPlayerController>(session.Controller).Value;
                     if (player is { IsValid: true }) ApplyInventory(player);
                 }
@@ -179,6 +199,10 @@ public sealed class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig
     private bool Allowed(Session session, string id, SkinDefinition skin) =>
         SkinRules.CanApply(skin, id, session.SteamId, Config.ServerId, DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
             session.Access.Ready, session.Access.Snapshot ?? _catalog);
+
+    private string? Selected(Session session, string weapon) =>
+        SelectionRules.Resolve(_selections.Get(session.SteamId, weapon), Config.Weapons[weapon],
+            (id, skin) => Allowed(session, id, skin) && _precached.Contains(skin.Model));
 
     private void OpenWeapons(CCSPlayerController? player)
     {
@@ -205,7 +229,7 @@ public sealed class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig
         var session = EnsureSession(player);
         if (session == null || !Config.Weapons.TryGetValue(weapon, out var definition)) return;
         var menu = new CenterHtmlMenu(Html(definition.Name), this);
-        var selected = _selections.Get(session.SteamId, weapon);
+        var selected = Selected(session, weapon);
         menu.AddMenuOption(string.IsNullOrEmpty(selected) ? "✓ Стандартная модель" : "Стандартная модель",
             (p, _) => Select(p, weapon, null));
         foreach (var (id, skin) in definition.Skins)
@@ -250,7 +274,7 @@ public sealed class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig
         var generation = _mapGeneration;
         Server.NextFrame(() =>
         {
-            if (!_active || generation != _mapGeneration) return;
+            if (!_active || _lifecycle?.MapReady != true || generation != _mapGeneration) return;
             var current = new CHandle<CCSPlayerController>(session.Controller).Value;
             if (current is { IsValid: true } && _sessions.TryGetValue(current.Slot, out var live) && ReferenceEquals(live, session))
                 ApplyInventory(current);
@@ -260,8 +284,9 @@ public sealed class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig
     private void ApplyInventory(CCSPlayerController player, string? forceWeapon = null)
     {
         var session = EnsureSession(player);
+        if (session == null) return;
         var pawn = player.PlayerPawn.Value;
-        if (session == null || pawn is not { IsValid: true } || !player.PawnIsAlive) return;
+        if (pawn is not { IsValid: true } || !player.PawnIsAlive) return;
         var weapons = pawn.WeaponServices?.MyWeapons;
         if (weapons == null) return;
         foreach (var handle in weapons)
@@ -272,7 +297,7 @@ public sealed class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig
             if (category == null || forceWeapon != null && category != forceWeapon) continue;
             var raw = weapon.EntityHandle.Raw;
             if (forceWeapon == null && _applied.ContainsKey(raw)) continue;
-            var selected = _selections.Get(session.SteamId, category);
+            var selected = Selected(session, category);
             if (string.IsNullOrEmpty(selected))
             {
                 if (forceWeapon != null) Revert(raw);
@@ -308,12 +333,13 @@ public sealed class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig
 
     private void ObserveHeldGrenades()
     {
-        if (!_active) return;
+        if (!_active || _lifecycle?.MapReady != true) return;
         foreach (var player in Utilities.GetPlayers())
         {
             var pawn = player.PlayerPawn.Value;
-            var weapon = pawn?.WeaponServices?.ActiveWeapon.Value;
-            if (pawn is not { IsValid: true } || weapon is not { IsValid: true }) continue;
+            if (pawn is not { IsValid: true }) continue;
+            var weapon = pawn.WeaponServices?.ActiveWeapon.Value;
+            if (weapon is not { IsValid: true }) continue;
             var name = WeaponNames.Normalize(weapon.DesignerName, weapon.AttributeManager.Item.ItemDefinitionIndex);
             if (!WeaponNames.Projectiles.Values.Any(candidates => candidates.Contains(name))) continue;
             _grenades.Observe(pawn.EntityHandle.Raw, name,
@@ -323,6 +349,7 @@ public sealed class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig
 
     private void OnEntitySpawned(CEntityInstance entity)
     {
+        if (!_active || _lifecycle?.MapReady != true) return;
         if (!entity.IsValid || !WeaponNames.Projectiles.TryGetValue(entity.DesignerName, out var candidates)) return;
         var raw = entity.EntityHandle.Raw;
         var generation = _mapGeneration;
@@ -330,7 +357,7 @@ public sealed class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig
         ObserveHeldGrenades();
         Server.NextFrame(() =>
         {
-            if (!_active || generation != _mapGeneration) return;
+            if (!_active || _lifecycle?.MapReady != true || generation != _mapGeneration) return;
             var projectile = new CHandle<CBaseCSGrenadeProjectile>(raw).Value;
             if (projectile is not { IsValid: true }) return;
             var thrower = projectile.Thrower.IsValid ? projectile.Thrower.Raw : projectile.OriginalThrower.Raw;
@@ -342,17 +369,19 @@ public sealed class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig
     public override void Unload(bool hotReload)
     {
         _active = false;
+        var mapReady = _lifecycle?.MapReady == true;
+        _lifecycle?.Stop();
         _stop.Cancel();
         foreach (var raw in _applied.Keys.ToArray())
         {
-            try { Revert(raw); }
+            try { if (mapReady) Revert(raw); }
             catch (Exception ex) { Logger.LogWarning("Failed to restore entity {Handle}: {Type}", raw, ex.GetType().Name); }
         }
-        foreach (var player in Utilities.GetPlayers())
+        foreach (var player in mapReady ? Utilities.GetPlayers() : [])
             if (_menus.TryGetValue(player.EntityHandle.Raw, out var menu) && ReferenceEquals(MenuManager.GetActiveMenu(player), menu))
                 MenuManager.CloseActiveMenu(player);
         _menus.Clear();
-        _selections.DisposeAsync().AsTask().GetAwaiter().GetResult();
+        if (_selections != null) _selections.DisposeAsync().AsTask().GetAwaiter().GetResult();
         _sessions.Clear();
         _grenades.Clear();
     }
