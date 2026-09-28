@@ -12,11 +12,11 @@ using Microsoft.Extensions.Logging;
 
 namespace CustomWeapons;
 
-[MinimumApiVersion(376)]
+[MinimumApiVersion(375)]
 public sealed class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig>
 {
     public override string ModuleName => "CustomWeapons";
-    public override string ModuleVersion => "1.0.0";
+    public override string ModuleVersion => "1.0.1";
     public override string ModuleAuthor => "koiie111";
     public override string ModuleDescription => "Custom weapon models with MySQL access and local selections";
     public PluginConfig Config { get; set; } = new();
