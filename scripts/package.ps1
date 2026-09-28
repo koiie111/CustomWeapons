@@ -24,8 +24,22 @@ foreach ($file in 'README.md', 'CHANGELOG.md', 'LICENSE', 'THIRD-PARTY-NOTICES.m
 }
 Copy-Item -LiteralPath (Join-Path $repoRoot 'licenses') -Destination $stageRoot -Recurse
 Copy-Item -LiteralPath (Join-Path $repoRoot 'docs') -Destination $stageRoot -Recurse
+Copy-Item -LiteralPath (Join-Path $repoRoot 'configs') -Destination $stageRoot -Recurse
 $archive = Join-Path $outputRoot "CustomWeapons-v$Version.zip"
 Compress-Archive -Path (Join-Path $stageRoot '*') -DestinationPath $archive -Force
+$zip = [IO.Compression.ZipFile]::OpenRead($archive)
+try {
+    $prefix = 'addons/counterstrikesharp/plugins/CustomWeapons/'
+    foreach ($required in 'CustomWeapons.dll', 'CustomWeapons.Core.dll', 'CustomWeapons.deps.json', 'CustomWeapons.runtimeconfig.json', 'MySqlConnector.dll', 'Microsoft.Extensions.Logging.Abstractions.dll', 'Microsoft.Extensions.DependencyInjection.Abstractions.dll') {
+        if ($null -eq $zip.GetEntry($prefix + $required)) { throw "Missing dependency: $required" }
+    }
+    $entry = $zip.GetEntry('addons/counterstrikesharp/configs/plugins/CustomWeapons/CustomWeapons.json')
+    if ($null -eq $entry) { throw 'Missing configuration' }
+    $reader = [IO.StreamReader]::new($entry.Open())
+    try { $config = $reader.ReadToEnd() | ConvertFrom-Json } finally { $reader.Dispose() }
+    if ($config.Database.Password -ne '') { throw 'Never package real credentials' }
+    if ($zip.Entries.FullName -match '(^|/)(data|obj|bin)/|CounterStrikeSharp.API.dll$') { throw 'Unexpected runtime data or build files in archive' }
+} finally { $zip.Dispose() }
 $hash = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant()
 Set-Content -LiteralPath (Join-Path $outputRoot 'SHA256SUMS.txt') -Value "$hash  CustomWeapons-v$Version.zip" -Encoding utf8NoBOM
 Write-Output $archive
