@@ -27,6 +27,9 @@ public sealed class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig
         public uint Controller { get; } = controller;
         public AccessState Access { get; } = new();
         public double NextChange { get; set; }
+        public InventorySnapshot Inventory { get; } = new();
+        public List<uint> InventoryScratch { get; } = [];
+        public double NextSweep { get; set; }
     }
     private sealed record Applied(string OriginalModel, string Model);
     private readonly Dictionary<int, Session> _sessions = new();
@@ -44,6 +47,7 @@ public sealed class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig
     private bool _refreshRunning;
     private bool _refreshAgain;
     private int _mapGeneration;
+    private bool _trackGrenades;
     private static double Now => Stopwatch.GetTimestamp() / (double)Stopwatch.Frequency;
 
     public void OnConfigParsed(PluginConfig config)
@@ -54,6 +58,7 @@ public sealed class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig
         ArgumentNullException.ThrowIfNull(config.Database);
         ArgumentNullException.ThrowIfNull(config.Weapons);
         SkinRules.ValidateWeapons(config.Weapons);
+        _trackGrenades = config.Weapons.Keys.Any(WeaponNames.IsProjectileWeapon);
         Config = config;
     }
 
@@ -114,7 +119,7 @@ public sealed class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig
         RegisterEventHandler<EventItemPickup>((ev, _) => { Schedule(ev.Userid); return HookResult.Continue; });
         RegisterListener<Listeners.OnEntityDeleted>(entity => _applied.Remove(entity.EntityHandle.Raw));
         RegisterListener<Listeners.OnEntitySpawned>(OnEntitySpawned);
-        RegisterListener<Listeners.OnTick>(ObserveHeldGrenades);
+        if (_trackGrenades) RegisterListener<Listeners.OnTick>(ObserveHeldGrenades);
         AddTimer(Config.RefreshIntervalSeconds, RequestRefresh, TimerFlags.REPEAT);
         // Covers weapons granted by other plugins and joins while an earlier DB read was pending.
         AddTimer(0.5f, () =>
@@ -125,7 +130,13 @@ public sealed class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig
                 var existed = _sessions.ContainsKey(player.Slot);
                 if (EnsureSession(player) is not null)
                 {
-                    ApplyInventory(player);
+                    var session = _sessions[player.Slot];
+                    var now = Now;
+                    if (InventoryChanged(player, session) || now >= session.NextSweep)
+                    {
+                        ApplyInventory(player);
+                        session.NextSweep = now + 5;
+                    }
                     if (!existed) RequestRefresh();
                 }
             }
@@ -153,8 +164,20 @@ public sealed class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig
             _menus.Remove(existing.Controller);
         }
         var session = new Session(steamId, player.EntityHandle.Raw);
+        session.NextSweep = Now + 5 + player.Slot % 10 * 0.5;
         _sessions[player.Slot] = session;
         return session;
+    }
+
+    private static bool InventoryChanged(CCSPlayerController player, Session session)
+    {
+        var current = session.InventoryScratch;
+        current.Clear();
+        var pawn = player.PlayerPawn.Value;
+        if (pawn is { IsValid: true } && player.PawnIsAlive && pawn.WeaponServices?.MyWeapons is { } weapons)
+            foreach (var handle in weapons)
+                if (handle.Value is { IsValid: true } weapon) current.Add(weapon.EntityHandle.Raw);
+        return session.Inventory.Update(current);
     }
 
     private void RequestRefresh()
@@ -333,17 +356,19 @@ public sealed class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig
 
     private void ObserveHeldGrenades()
     {
-        if (!_active || _lifecycle?.MapReady != true) return;
+        if (!_trackGrenades || !_active || _lifecycle?.MapReady != true) return;
+        var now = Now;
         foreach (var player in Utilities.GetPlayers())
         {
             var pawn = player.PlayerPawn.Value;
             if (pawn is not { IsValid: true }) continue;
             var weapon = pawn.WeaponServices?.ActiveWeapon.Value;
             if (weapon is not { IsValid: true }) continue;
-            var name = WeaponNames.Normalize(weapon.DesignerName, weapon.AttributeManager.Item.ItemDefinitionIndex);
-            if (!WeaponNames.Projectiles.Values.Any(candidates => candidates.Contains(name))) continue;
-            _grenades.Observe(pawn.EntityHandle.Raw, name,
-                _applied.TryGetValue(weapon.EntityHandle.Raw, out var applied) ? applied.Model : null, Now);
+            var name = weapon.DesignerName;
+            if (!WeaponNames.IsProjectileWeapon(name)) continue;
+            var pawnRaw = pawn.EntityHandle.Raw;
+            if (!_applied.TryGetValue(weapon.EntityHandle.Raw, out var applied) && !_grenades.HasSample(pawnRaw)) continue;
+            _grenades.Observe(pawnRaw, name, applied?.Model, now);
         }
     }
 
