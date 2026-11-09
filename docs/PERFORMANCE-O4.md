@@ -10,6 +10,8 @@ The 0.5-second inventory safety check now compares exact entity handles includin
 
 One-client testing found that a model selected in the menu changes the weapon entity (visible when dropped), but the first-person viewmodel remains old even after picking it up. Buying a new instance displays the new model. Deferring application one frame did not fix this, so the experiment was removed. A [third-party implementation](https://github.com/exkludera-cssharp/cs2-force-custom-weapons/blob/main/src/weapon.cs) uses direct schema-offset memory access to change the client viewmodel; O4 does not adopt that engine-version-sensitive technique. Immediate first-person refresh remains an open functional issue.
 
+The owner's [WeaponPaints fork](https://github.com/koiie111/cs2-WeaponPaints/blob/main/WeaponAction.cs#L259) explicitly forbids removal and re-giving inside `RefreshWeapons`: delayed removal previously duplicated weapons during repeated refreshes. Its [separate pickup handler](https://github.com/koiie111/cs2-WeaponPaints/blob/main/WeaponAction.cs#L493) takes an inventory snapshot before a narrow USP/knife grant; it is not a general replacement routine preserving ammo, weapon identity or other cosmetic data. O4 therefore does not copy it into the menu-selection path.
+
 ## Verification
 
 - Baseline: `dotnet restore --locked-mode`, `dotnet build -c Release --no-restore` (0 warnings), `dotnet test -c Release --no-build` (54 passed, 1 skipped without disposable MySQL).
