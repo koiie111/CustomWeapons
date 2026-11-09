@@ -284,13 +284,13 @@ public sealed class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig
         }
         _selections.Set(session.SteamId, weapon, id);
         session.NextChange = Now + Config.CooldownSeconds;
-        Schedule(player, weapon);
+        ApplyInventory(player, weapon);
         Tell(player, "Выбор сохранён. Он применяется к вашему оружию этого типа.");
         OpenSkins(player, weapon);
     }
 
     private static void Tell(CCSPlayerController player, string text) => player.PrintToChat($"[CustomWeapons] {text}");
-    private void Schedule(CCSPlayerController? player, string? forceWeapon = null)
+    private void Schedule(CCSPlayerController? player)
     {
         var session = EnsureSession(player);
         if (session == null) return;
@@ -300,7 +300,7 @@ public sealed class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig
             if (!_active || _lifecycle?.MapReady != true || generation != _mapGeneration) return;
             var current = new CHandle<CCSPlayerController>(session.Controller).Value;
             if (current is { IsValid: true } && _sessions.TryGetValue(current.Slot, out var live) && ReferenceEquals(live, session))
-                ApplyInventory(current, forceWeapon);
+                ApplyInventory(current);
         });
     }
 
