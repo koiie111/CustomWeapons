@@ -120,4 +120,9 @@ public static class WeaponNames
         ["molotov_projectile"] = ["weapon_molotov", "weapon_incgrenade"],
         ["snowball_projectile"] = ["weapon_snowball"]
     };
+
+    private static readonly HashSet<string> ProjectileWeapons =
+        new(Projectiles.Values.SelectMany(names => names), StringComparer.OrdinalIgnoreCase);
+
+    public static bool IsProjectileWeapon(string designerName) => ProjectileWeapons.Contains(designerName);
 }

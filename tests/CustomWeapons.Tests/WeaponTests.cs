@@ -48,6 +48,46 @@ public sealed class WeaponTests
     }
 
     [Fact]
+    public void GrenadeLookupIncludesAllProjectileAliasesWithoutChangingKnifeRules()
+    {
+        foreach (var name in WeaponNames.Projectiles.Values.SelectMany(names => names))
+            Assert.True(WeaponNames.IsProjectileWeapon(name));
+        Assert.True(WeaponNames.IsProjectileWeapon("WEAPON_FLASHBANG"));
+        Assert.False(WeaponNames.IsProjectileWeapon("weapon_knife"));
+        Assert.False(WeaponNames.IsProjectileWeapon("weapon_ak47"));
+    }
+
+    [Fact]
+    public void RepeatedGrenadeObservationRefreshesTtlAndPlainGrenadeClearsOldModel()
+    {
+        var tracker = new GrenadeTracker();
+        var candidates = WeaponNames.Projectiles["flashbang_projectile"];
+        tracker.Observe(100, "weapon_flashbang", "models/first.vmdl", 10);
+        tracker.Observe(100, "weapon_flashbang", "models/first.vmdl", 11);
+        Assert.Equal("models/first.vmdl", tracker.Find(100, candidates, 12.5));
+        tracker.Observe(100, "weapon_flashbang", null, 12.6);
+        Assert.Null(tracker.Find(100, candidates, 12.7));
+        tracker.Observe(200, "weapon_flashbang", "models/second.vmdl", 13);
+        Assert.Equal("models/second.vmdl", tracker.Find(200, candidates, 13));
+        tracker.Clear();
+        Assert.Null(tracker.Find(200, candidates, 13));
+    }
+
+    [Fact]
+    public void InventorySnapshotDetectsTransfersSerialChangesAndRespawn()
+    {
+        var first = new InventorySnapshot();
+        var second = new InventorySnapshot();
+        Assert.True(first.Update([1, 2]));
+        Assert.False(first.Update([2, 1]));
+        Assert.True(first.Update([2]));
+        Assert.True(second.Update([1]));
+        Assert.True(first.Update([]));
+        Assert.True(first.Update([0x10000001, 2]));
+        Assert.False(first.Update([2, 0x10000001]));
+    }
+
+    [Fact]
     public void RejectsDuplicateIdsAndInvalidResourcePaths()
     {
         var skin = new SkinDefinition { Model = "models/test.vmdl" };

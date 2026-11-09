@@ -4,9 +4,23 @@ namespace CustomWeapons.Core;
 // may have a model that the thrower cannot select. Pawn handles include the entity serial.
 public sealed class GrenadeTracker
 {
-    private sealed record Sample(string Weapon, string? Model, double Time);
+    private sealed class Sample(string weapon, string? model, double time)
+    {
+        public string Weapon = weapon;
+        public string? Model = model;
+        public double Time = time;
+    }
     private readonly Dictionary<uint, Sample> _samples = new();
-    public void Observe(uint pawn, string weapon, string? model, double now) => _samples[pawn] = new(weapon, model, now);
+    public void Observe(uint pawn, string weapon, string? model, double now)
+    {
+        if (_samples.TryGetValue(pawn, out var sample) && sample.Weapon == weapon && sample.Model == model)
+        {
+            sample.Time = now;
+            return;
+        }
+        _samples[pawn] = new(weapon, model, now);
+    }
+    public bool HasSample(uint pawn) => _samples.ContainsKey(pawn);
     public string? Find(uint pawn, IEnumerable<string> candidates, double now)
     {
         return _samples.TryGetValue(pawn, out var sample) && now - sample.Time is >= 0 and <= 2 &&
