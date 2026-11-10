@@ -17,5 +17,9 @@
     "src/CustomWeapons.Core/RuntimeLifecycle.cs": "e5dd7a420bf821d70c1b29e2e1be4f8327d065ff8e767daa5243e5acbeccd221",
     "src/CustomWeapons.Core/SelectionRules.cs": "051e8fc1530b3cba2673fcb3f108a0efc27fa8ddf6b16ba1fcde7ed9ce5ccfc2",
     "src/CustomWeapons.Core/SelectionStore.cs": "14240de64e1a3ae6a62a9b5af28599afc6e6aec07c4371d7113aa19670c3ab47"
+  },
+  "source_archive": {
+    "path": "docs/performance/review-20261110/source-inputs.zip",
+    "sha256": "f0307ecf7f0fc6799622d81a7d28c874bb620387ebee02c6d94012adcea47d76"
   }
 }

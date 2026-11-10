@@ -7,7 +7,7 @@ using CounterStrikeSharp.API.Core;
 using CustomWeapons;
 using CustomWeapons.Core;
 
-internal static class Program
+internal static partial class Program
 {
     private const BindingFlags Private = BindingFlags.Instance | BindingFlags.NonPublic;
     private static int _checks;
@@ -48,6 +48,7 @@ internal static class Program
     {
         Entities.All.Clear(); Entities.Next = 100; Utilities.Players.Clear();
         Server.DrainWorld(); Server.DrainFrames();
+        Server.AdvanceTicks(16);
         var plugin = new CustomWeaponsPlugin();
         var weapons = new Dictionary<string, WeaponDefinition>
         {
@@ -73,7 +74,7 @@ internal static class Program
     }
     private static Weapon Give(CCSPlayerController player, string name)
     {
-        var weapon = new Weapon { DesignerName = name };
+        var weapon = new Weapon { DesignerName = name, OwnerEntity = new(player.PlayerPawn.Raw) };
         var services = player.PlayerPawn.Value!.WeaponServices!;
         services.MyWeapons.Add(new(weapon.EntityHandle.Raw));
         services.ActiveWeapon = new(weapon.EntityHandle.Raw);
@@ -94,7 +95,11 @@ internal static class Program
             var plugin = await Start(enabled);
             Check(plugin.ListenersByType.ContainsKey(typeof(Listeners.OnTick)) == enabled, "Tick feature gate");
             Check(plugin.ListenersByType.ContainsKey(typeof(Listeners.OnEntitySpawned)) == enabled, "Spawn feature gate");
-            Check(plugin.Events.ContainsKey(typeof(EventItemEquip)) == enabled, "Equip feature gate");
+#if HELD_REFRESH
+            Check(plugin.Events.ContainsKey(typeof(EventItemEquip)), "Model refresh needs equip events in both configurations");
+#else
+            Check(plugin.Events.ContainsKey(typeof(EventItemEquip)) == enabled, "Historical equip feature gate");
+#endif
             Check(plugin.ListenersByType.ContainsKey(typeof(Listeners.OnEntityDeleted)), "Deletion cleanup stays enabled");
             var count = plugin.ListenersByType.Count;
             MapEnd(plugin);
@@ -186,6 +191,9 @@ internal static class Program
         }
 
         await MapRefreshTest();
+#if HELD_REFRESH
+        await HeldRefreshTests();
+#endif
         Console.WriteLine($"{_checks} runtime checks passed");
     }
 

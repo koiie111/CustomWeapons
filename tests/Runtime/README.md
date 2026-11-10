@@ -1,6 +1,7 @@
 # Проверки игрового слоя без движка
 
 `Runtime.csproj` компилирует реальные `CustomWeaponsPlugin.cs` и `PluginConfig.cs`
+и, если они присутствуют в выбранном исходнике, `HeldModelRefresh.cs`, `WeaponState.cs` и встроенную таблицу атрибутов
 с управляемыми заменами границы CSS. Core используется из production-проекта.
 Тесты вызывают зарегистрированные hooks/events/timers; MySQL заменяется только
 через `IAccessRepository`. Сервер, production DB и файлы предпочтений не нужны.
@@ -16,6 +17,16 @@ python tests/verify_profiles.py
 передача нестандартной модели и обычная вторая flash, discovery после выдачи
 другим плагином, removal после drop/death, identity слота, safety retry,
 map-scoped DB result, отказ DB и unload с отложенным callback.
+
+Текущий кандидат добавляет проверки нового экземпляра, ammo и обоих векторов
+атрибутов (включая точные биты float), stock/custom и inactive stock reversion,
+передачи реального оформления другому владельцу, повторного equip, отмены на
+границах session/pawn/map/round, сохранности C4, deferred paint hooks без возврата
+потраченных патронов и burst для 0/1/8/32 игроков. Итого 129 проверок.
+Бюджет — не более четырёх retire/grant/settlement-операций за тик; 32 session
+завершаются в стенде за не более 25 кадров. Не добавлен тик-обработчик.
+Двойник атрибутного вектора намеренно запрещает штатный не-handle перечислитель,
+как установленный CSS; проход использует buffer base + размер класса из схемы.
 
 `-- map-only` запускает отдельную регрессию старого DB result. На исходном
 коде до исправления она падает с `Old-map read cannot publish catalog`.
@@ -48,3 +59,12 @@ Raw — `docs/performance/review-20261110/{baseline,candidate}.json`. Counts/sca
 и чтения definition доступны для каждого окна. Статистика времени — медиана
 трёх окон; bytes/call относятся к этому managed fixture. Production-сборки
 проверяются отдельно против настоящего CounterStrikeSharp.API 1.0.375.
+
+Исторические входы perf.2 заморожены в `review-20261110/source-inputs.zip`;
+их исходные hashes/цифры не заменяются текущими. Новое сравнение perf.2
+(`879fc5f`) и held-refresh хранится отдельно в `held-refresh-20261110/`.
+`python tests/verify_held_refresh_perf.py` проверяет источники/результаты и
+равенство детерминированной работы и allocations в 24 парах tick/safety.
+
+Текущее сравнение perf.2 и rc.4: `held-replacement-20261110/`. Предыдущее
+`held-refresh-20261110/` относится к отклонённой rc.1 и не подменяет данные rc.4.

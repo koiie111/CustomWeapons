@@ -1,12 +1,22 @@
 """Check comparable fixtures and deterministic work counts, without time thresholds."""
 import json
 import hashlib
+import zipfile
 from pathlib import Path
 
 repo = Path(__file__).resolve().parents[1]
 root = repo / 'docs/performance/review-20261110'
-for name, expected in json.loads((root / 'inputs.json').read_text())['inputs'].items():
-    assert hashlib.sha256((repo / name).read_bytes().replace(b'\r\n', b'\n')).hexdigest() == expected, name
+manifest = json.loads((root / 'inputs.json').read_text())
+# These measurements describe the recorded perf.2 commit, not later revisions.
+# Keep its original source/hash inputs reproducible as production code evolves.
+archive = repo / manifest['source_archive']['path']
+assert hashlib.sha256(archive.read_bytes()).hexdigest() == manifest['source_archive']['sha256']
+with zipfile.ZipFile(archive) as inputs:
+    assert set(inputs.namelist()) == set(manifest['inputs'])
+    for name, expected in manifest['inputs'].items():
+        assert hashlib.sha256(inputs.read(name)).hexdigest() == expected, name
+        if name.endswith('.json'):
+            assert inputs.read(name) == (repo / name).read_bytes().replace(b'\r\n', b'\n'), name
 baseline, candidate = [json.loads((root / f'{name}.json').read_text()) for name in ('baseline', 'candidate')]
 assert baseline['synthetic'] and candidate['synthetic']
 assert baseline['runtime'] == candidate['runtime']

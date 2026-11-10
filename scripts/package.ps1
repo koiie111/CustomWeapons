@@ -1,5 +1,5 @@
 param(
-    [string]$Version = '1.0.3-perf.2',
+    [string]$Version = '1.0.4-rc.4',
     [string]$OutputDirectory = (Join-Path $PSScriptRoot '../artifacts')
 )
 $ErrorActionPreference = 'Stop'
@@ -12,9 +12,12 @@ $publishRoot = Join-Path $buildRoot 'publish'
 $stageRoot = Join-Path $buildRoot 'stage'
 $pluginRoot = Join-Path $stageRoot 'addons/counterstrikesharp/plugins/CustomWeapons'
 $configRoot = Join-Path $stageRoot 'addons/counterstrikesharp/configs/plugins/CustomWeapons'
+$gamedataRoot = Join-Path $stageRoot 'addons/counterstrikesharp/gamedata'
 dotnet publish (Join-Path $repoRoot 'src/CustomWeapons/CustomWeapons.csproj') -c Release --no-restore -o $publishRoot
 if ($LASTEXITCODE -ne 0) { throw 'Publish failed' }
 New-Item -ItemType Directory -Force -Path $pluginRoot, $configRoot | Out-Null
+New-Item -ItemType Directory -Force -Path $gamedataRoot | Out-Null
+Copy-Item -LiteralPath (Join-Path $repoRoot 'gamedata/customweapons.json') -Destination $gamedataRoot
 Get-ChildItem -LiteralPath $publishRoot -File | Where-Object { $_.Extension -in '.dll', '.json', '.pdb' } |
     Copy-Item -Destination $pluginRoot
 if (Test-Path (Join-Path $pluginRoot 'CounterStrikeSharp.API.dll')) { throw 'Do not redistribute the server API in the plugin folder' }
@@ -35,6 +38,7 @@ try {
     }
     $entry = $zip.GetEntry('addons/counterstrikesharp/configs/plugins/CustomWeapons/CustomWeapons.json')
     if ($null -eq $entry) { throw 'Missing configuration' }
+    if ($null -eq $zip.GetEntry('addons/counterstrikesharp/gamedata/customweapons.json')) { throw 'Missing economy gamedata' }
     $reader = [IO.StreamReader]::new($entry.Open())
     try { $config = $reader.ReadToEnd() | ConvertFrom-Json } finally { $reader.Dispose() }
     if ($config.Database.Password -ne '') { throw 'Never package real credentials' }

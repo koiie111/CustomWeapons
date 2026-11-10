@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.4-rc.4 — 2026-11-10
+
+- Refresh first-person models by replacing an owned weapon after model selection, pickup or equip when its cached model differs. Same-entity redeploy failed the client check and is not used.
+- Detach the exact old handle through item services, verify inventory removal and await serial invalidation before granting the replacement. Preserve ammo, appearance, modes, mesh, recoil and stricter attack cooldowns while retaining the new item ID.
+- Restore appearance once after deferred give hooks without rolling back shots fired in that frame. Coalesce work, cache refreshed handles and limit retire/grant/settlement to four work units per tick, without a tick listener or repeating timer.
+- Cancel deferred work across session/pawn/owner/map/round changes. Keep grenade/projectile behavior and O4 fast paths. Add schema-sized economy-vector access for CSS 375, embedded attribute names and packaged gamedata.
+- Add 129 linked-source checks, a frozen perf.2/current callback comparison, 25 native state-replacement checks and single-client selection/pickup acceptance. Other clients, full-player load and extended lifecycle/WeaponPaints scenarios remain unverified for this build.
+
 ## 1.0.3-perf.2 — 2026-11-10
 
 - Reject MySQL results from an earlier map and request a fresh snapshot before publishing access or applying models.

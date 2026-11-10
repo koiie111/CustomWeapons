@@ -1,0 +1,55 @@
+{
+  "version": "1.0.4-rc.4",
+  "client_date": "2026-11-10",
+  "server": 10,
+  "game": "CS2 1.41.9.6 build10955",
+  "css": "1.0.378 (compiled API1.0.375)",
+  "tested_files": {
+    "CustomWeapons.dll": "69b19fff54b6beb4343a94336f7338dd17bd974eee519f76e9994d2142397478",
+    "CustomWeapons.Core.dll": "ea791ada89e3778f74c45c0e482a5c581d9650c30410ef439366f0647860f471"
+  },
+  "build_parent_commit": "879fc5f69c08474925d9caf970f114aeef9bd286",
+  "production_inputs": "../../performance/held-replacement-20261110/source-inputs.zip: candidate/",
+  "same_entity_rc1": "failed: owner saw holster/deploy but stock first-person model",
+  "client": {
+    "count": 1,
+    "model_selection": "owner confirmed multiple other skins work",
+    "own_pickup": "owner confirmed model stayed after AK pickup and pistol/back",
+    "old_stock_handle": 1702690996,
+    "decorated_ground_handle": 2655682754,
+    "after_pickup_native_snapshot": false,
+    "exact_final_ammo_equality_claimed": false
+  },
+  "native": {
+    "result": "passed",
+    "replacements": 25,
+    "fixture_scope": "Production WeaponState snapshot/native drop/give on one controlled bot; not production human-session queue/render",
+    "inspector_source": "Final inspector1.6 has the same fixture body as test1.5; later adds full snapshot file transport. Historic inspector DLL was not frozen.",
+    "excluded_setups": [
+      "rc2: CSS non-handle vector enumeration rejected before retirement",
+      "rc3/rc4 initial fixture: occupied rifle slot returned unowned AK",
+      "helper1.4: broad fixture cleanup removed non-detached C4, leaving an invalid handle; fixed fixture clears only rifles and checks detach"
+    ]
+  },
+  "restoration": {
+    "all_original_plugin_dlls_restored": true,
+    "config_restored": true,
+    "gamecfg_restored": true,
+    "preferences_preserved": true,
+    "helper_removed": true,
+    "temporary_gamedata_removed": true,
+    "pid": 77453,
+    "entry_open": true,
+    "original_modules": 60,
+    "server": 10,
+    "restored_version": "1.0.2"
+  },
+  "not_exercised": [
+    "two-real-client transfer",
+    "new-build reconnect/death/map/round integration",
+    "!wp interaction with a real client",
+    "knives/all aliases",
+    "full-tick/GC at player load"
+  ],
+  "fleet_deployed": false
+}
