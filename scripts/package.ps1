@@ -1,5 +1,5 @@
 param(
-    [string]$Version = '1.0.2',
+    [string]$Version = '1.0.3-perf.2',
     [string]$OutputDirectory = (Join-Path $PSScriptRoot '../artifacts')
 )
 $ErrorActionPreference = 'Stop'

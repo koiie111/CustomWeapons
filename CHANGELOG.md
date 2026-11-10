@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.0.3-perf.2 — 2026-11-10
+
+- Reject MySQL results from an earlier map and request a fresh snapshot before publishing access or applying models.
+- Skip definition lookup/normalization for already painted handles during non-forced inventory applications.
+- Add production callback checks, a baseline/candidate synthetic harness, and the 20 original CSSProfiler exports with an offline integrity/distribution verifier.
+
+## 1.0.3-perf.1 — 2026-11-10
+
+- When no grenade category is configured, omit the projectile entity-spawn listener as well as the existing tick listener. Gun and knife model application and entity-deletion cleanup remain registered.
+- Record a paired empty-server CSSProfiler comparison with the pre-O4 baseline and the current main build in `docs/PERFORMANCE-CSSPROFILER-20261110.md`.
+
 ## 1.0.2 — 2026-09-28
 
 - Исправлена ранняя инициализация: игровые события, таймеры и перебор игроков запускаются только после OnMapStart; горячая загрузка — через отложенный callback. Холодный Load больше не вызывает GetPlayers до готовности globals.

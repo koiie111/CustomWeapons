@@ -16,7 +16,7 @@ namespace CustomWeapons;
 public sealed class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig>
 {
     public override string ModuleName => "CustomWeapons";
-    public override string ModuleVersion => "1.0.2";
+    public override string ModuleVersion => "1.0.3-perf.2";
     public override string ModuleAuthor => "koiie111";
     public override string ModuleDescription => "Custom weapon models with MySQL access and local selections";
     public PluginConfig Config { get; set; } = new();
@@ -126,8 +126,13 @@ public sealed class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig
             return HookResult.Continue;
         });
         RegisterListener<Listeners.OnEntityDeleted>(entity => _applied.Remove(entity.EntityHandle.Raw));
-        RegisterListener<Listeners.OnEntitySpawned>(OnEntitySpawned);
-        if (_trackGrenades) RegisterListener<Listeners.OnTick>(ObserveHeldGrenades);
+        // Projectile tracking cannot apply a model without a configured grenade skin.
+        // Avoid entering managed code for every entity spawn in gun-only configurations.
+        if (_trackGrenades)
+        {
+            RegisterListener<Listeners.OnEntitySpawned>(OnEntitySpawned);
+            RegisterListener<Listeners.OnTick>(ObserveHeldGrenades);
+        }
         AddTimer(Config.RefreshIntervalSeconds, RequestRefresh, TimerFlags.REPEAT);
         // Covers weapons granted by other plugins and joins while an earlier DB read was pending.
         AddTimer(0.5f, () =>
@@ -205,6 +210,7 @@ public sealed class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig
         if (!_active || _lifecycle?.MapReady != true) return;
         if (_refreshRunning) { _refreshAgain = true; return; }
         _refreshRunning = true;
+        var generation = _mapGeneration;
         var sessions = _sessions.ToArray();
         var ids = sessions.Select(x => x.Value.SteamId).Distinct().ToArray();
         _ = Task.Run(async () =>
@@ -219,6 +225,15 @@ public sealed class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig
             {
                 if (!_active) return;
                 _refreshRunning = false;
+                // A read started on the previous map must not publish its catalog/access
+                // or apply models on the new one. MapStarted may already have requested
+                // another refresh while this read was in flight.
+                if (generation != _mapGeneration || _lifecycle?.MapReady != true)
+                {
+                    _refreshAgain = false;
+                    RequestRefresh();
+                    return;
+                }
                 if (result != null)
                 {
                     _catalog = result;
@@ -337,10 +352,10 @@ public sealed class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig
         {
             var weapon = handle.Value;
             if (weapon is not { IsValid: true }) continue;
-            var category = WeaponNames.Resolve(weapon.DesignerName, weapon.AttributeManager.Item.ItemDefinitionIndex, Config.Weapons.Keys);
-            if (category == null || forceWeapon != null && category != forceWeapon) continue;
             var raw = weapon.EntityHandle.Raw;
             if (forceWeapon == null && _applied.ContainsKey(raw)) continue;
+            var category = WeaponNames.Resolve(weapon.DesignerName, weapon.AttributeManager.Item.ItemDefinitionIndex, Config.Weapons.Keys);
+            if (category == null || forceWeapon != null && category != forceWeapon) continue;
             var selected = Selected(session, category);
             if (string.IsNullOrEmpty(selected))
             {
