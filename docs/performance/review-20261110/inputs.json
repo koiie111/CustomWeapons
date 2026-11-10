@@ -1,0 +1,21 @@
+{
+  "code_commit": "7835020a53a281f6be9a92b9af0a48717c499854",
+  "baseline_commit": "c52b926dab2e4c234d22e901b71d1709929837e7",
+  "hash_mode": "Git LF bytes (normalize CRLF to LF only for text inputs)",
+  "inputs": {
+    "src/CustomWeapons/CustomWeaponsPlugin.cs": "33c0093b78fcda6d776655afeab05f9df2e52efab2970cfe600ac04803169980",
+    "src/CustomWeapons/PluginConfig.cs": "cd57ef6fdcb8ca046778c538b4e55fe209a46f3d737db8dcfa3e05ed2c53eaed",
+    "tests/Runtime/Program.cs": "c582fdb211ef8accfed4fb6e4f3d5564cfc75887ad326015b32e93619b56f872",
+    "tests/Runtime/CssDoubles.cs": "a829f4f04bdd5985d49f5da3625e44141c11863fcb5ab5a15c85b3d9363e9411",
+    "tests/Runtime/Runtime.csproj": "00a3181be78a905386d3aa5497f2f3bbfff48511d8d3950092bc2191fda759c7",
+    "docs/performance/review-20261110/baseline.json": "d20429cf2cafb90232511e8553d68ee8c4550a6907bfa4106d18f16a04022586",
+    "docs/performance/review-20261110/candidate.json": "a81923ea3b68494a50bdae8677a00cdd8f16d47a20a2a2a97473264930ba07f7",
+    "src/CustomWeapons.Core/Definitions.cs": "e4708c557652aa07b1aadc9ec56b852244abb94ebd9db5637d6d21898149a4c6",
+    "src/CustomWeapons.Core/GrenadeTracker.cs": "93f730acc6d2b02a6fb358618c4180c5328a35f897bb497d55006dd0bf9304ea",
+    "src/CustomWeapons.Core/InventorySnapshot.cs": "11c0be321fec3ac37b43b35c2073449c8b47c56978b167a608738d37e122343a",
+    "src/CustomWeapons.Core/MySqlRepository.cs": "3c0f8dc2cf14c71c3de9323dae38a0e13d4dcca8671e9469c03b0e2851cb1adb",
+    "src/CustomWeapons.Core/RuntimeLifecycle.cs": "e5dd7a420bf821d70c1b29e2e1be4f8327d065ff8e767daa5243e5acbeccd221",
+    "src/CustomWeapons.Core/SelectionRules.cs": "051e8fc1530b3cba2673fcb3f108a0efc27fa8ddf6b16ba1fcde7ed9ce5ccfc2",
+    "src/CustomWeapons.Core/SelectionStore.cs": "14240de64e1a3ae6a62a9b5af28599afc6e6aec07c4371d7113aa19670c3ab47"
+  }
+}

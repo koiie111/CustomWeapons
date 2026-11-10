@@ -1,0 +1,39 @@
+{
+  "code_commit": "7835020a53a281f6be9a92b9af0a48717c499854",
+  "module_version": "1.0.3-perf.2",
+  "sdk": "10.0.400",
+  "tfm": "net10.0",
+  "css_api": "1.0.375",
+  "build_command": "pwsh -NoProfile -File scripts/package.ps1 -OutputDirectory <release>",
+  "files": {
+    "CustomWeapons.Core.dll": {
+      "sha256": "072f9fdcaa87231374c0433b765b2a5ce7b20c9bcd7a7bf7b070158bd8c3eb34",
+      "bytes": 34304
+    },
+    "CustomWeapons.deps.json": {
+      "sha256": "32fd86f81b1d4fc2a0bca963a817ed64ac8b560e9437326306dcad53a9cf6622",
+      "bytes": 3165
+    },
+    "CustomWeapons.dll": {
+      "sha256": "587c60b80366144759252166feb1525b1886cdd77dc3b42bc5bbc60f022f117b",
+      "bytes": 32256
+    },
+    "CustomWeapons.runtimeconfig.json": {
+      "sha256": "2e1693f8326910b07be4292d78dceba9cb49952c500afab1860d09b4d5e54047",
+      "bytes": 377
+    },
+    "Microsoft.Extensions.DependencyInjection.Abstractions.dll": {
+      "sha256": "7c97c4463fe0fc11d1f22f4d160b2bd2288981adf1de2717a6ff3fb993ddf294",
+      "bytes": 66312
+    },
+    "Microsoft.Extensions.Logging.Abstractions.dll": {
+      "sha256": "a76a735b63e6ef3b0bf41ff92423cbd16103b8952e8306140a9bd650346034dc",
+      "bytes": 67344
+    },
+    "MySqlConnector.dll": {
+      "sha256": "e7734ef5db26f5e5626f8ef354831c60adff9a8e88447cc5e865cfe1f9e466bc",
+      "bytes": 880488
+    }
+  },
+  "scope": "Prepared offline; no server changes. Package SHA256 is in the external release/SHA256SUMS.txt; this manifest identifies the compiled DLLs."
+}

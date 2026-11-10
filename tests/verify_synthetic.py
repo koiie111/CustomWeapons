@@ -1,8 +1,12 @@
 """Check comparable fixtures and deterministic work counts, without time thresholds."""
 import json
+import hashlib
 from pathlib import Path
 
-root = Path(__file__).resolve().parents[1] / 'docs/performance/review-20261110'
+repo = Path(__file__).resolve().parents[1]
+root = repo / 'docs/performance/review-20261110'
+for name, expected in json.loads((root / 'inputs.json').read_text())['inputs'].items():
+    assert hashlib.sha256((repo / name).read_bytes().replace(b'\r\n', b'\n')).hexdigest() == expected, name
 baseline, candidate = [json.loads((root / f'{name}.json').read_text()) for name in ('baseline', 'candidate')]
 assert baseline['synthetic'] and candidate['synthetic']
 assert baseline['runtime'] == candidate['runtime']
