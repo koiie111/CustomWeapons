@@ -1,14 +1,67 @@
-name: Build and test
+name: Build, test and release
 on:
   push:
     branches: [main]
     tags: ['v*']
   pull_request:
   workflow_dispatch:
+  schedule:
+    - cron: '23 */6 * * *'
 permissions:
   contents: read
+concurrency:
+  group: customweapons-${{ github.ref }}
+  cancel-in-progress: false
 jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      css: ${{ steps.release.outputs.css }}
+      tag: ${{ steps.release.outputs.tag }}
+      version: ${{ steps.release.outputs.version }}
+      build: ${{ steps.release.outputs.build }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Resolve CounterStrikeSharp and release identity
+        id: release
+        uses: actions/github-script@v7
+        with:
+          script: |
+            if (context.eventName === 'pull_request') {
+              core.setOutput('build', 'true');
+              return;
+            }
+            const fs = require('fs');
+            const response = await fetch('https://api.nuget.org/v3-flatcontainer/counterstrikesharp.api/index.json');
+            if (!response.ok) throw new Error('NuGet returned ' + response.status);
+            const { versions } = await response.json();
+            const stable = versions.filter(v => /^\d+\.\d+\.\d+$/.test(v));
+            stable.sort((a, b) => {
+              const aa = a.split('.').map(Number), bb = b.split('.').map(Number);
+              for (let i = 0; i < 3; i++) if (aa[i] !== bb[i]) return aa[i] - bb[i];
+              return 0;
+            });
+            const css = stable.at(-1);
+            if (!css) throw new Error('No stable CounterStrikeSharp.API package found');
+            const base = fs.readFileSync('Directory.Build.props', 'utf8').match(/<Version>([^<]+)<\/Version>/)?.[1];
+            if (!base) throw new Error('Missing project version');
+            const version = base + (base.includes('-') ? '.' : '-')
+              + 'build.' + context.sha.slice(0, 12) + '.css.' + css;
+            const tag = 'v' + version;
+            let exists = false;
+            try {
+              const { data } = await github.rest.repos.getReleaseByTag({ ...context.repo, tag });
+              exists = !data.draft;
+            } catch (error) {
+              if (error.status !== 404) throw error;
+            }
+            core.setOutput('css', css);
+            core.setOutput('tag', tag);
+            core.setOutput('version', version);
+            core.setOutput('build', context.eventName !== 'schedule' || !exists);
   build:
+    needs: prepare
+    if: needs.prepare.outputs.build == 'true'
     runs-on: ubuntu-latest
     services:
       mysql:
@@ -31,7 +84,16 @@ jobs:
           dotnet-version: '10.0.x'
           cache: true
           cache-dependency-path: '**/packages.lock.json'
-      - run: dotnet restore --locked-mode
+      - name: Select latest stable CounterStrikeSharp for release builds
+        if: github.event_name != 'pull_request'
+        env:
+          CSS_VERSION: ${{ needs.prepare.outputs.css }}
+        run: |
+          dotnet add src/CustomWeapons/CustomWeapons.csproj package CounterStrikeSharp.API --version "$CSS_VERSION" --no-restore
+          dotnet restore --force-evaluate
+      - name: Restore pinned dependencies for pull requests
+        if: github.event_name == 'pull_request'
+        run: dotnet restore --locked-mode
       - run: dotnet build -c Release --no-restore
       - name: Unit and MySQL integration tests
         run: dotnet test -c Release --no-build --logger trx --results-directory artifacts/test-results
@@ -39,7 +101,14 @@ jobs:
           CW_TEST_MYSQL: Server=127.0.0.1;Port=3306;Database=cw_test_customweapons;User ID=root;Password=ci-test-password;SslMode=Disabled
       - name: Package
         shell: pwsh
-        run: ./scripts/package.ps1
+        env:
+          RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
+        run: |
+          if ($env:RELEASE_VERSION) {
+            ./scripts/package.ps1 -Version $env:RELEASE_VERSION
+          } else {
+            ./scripts/package.ps1
+          }
       - name: Runtime callback checks
         run: |
           dotnet restore tests/Runtime/Runtime.csproj --locked-mode
@@ -62,3 +131,30 @@ jobs:
         with:
           name: test-results
           path: artifacts/test-results
+  release:
+    needs: [prepare, build]
+    if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: CustomWeapons
+          path: artifacts
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ needs.prepare.outputs.tag }}
+          CSS_VERSION: ${{ needs.prepare.outputs.css }}
+          COMMIT_SHA: ${{ github.sha }}
+        run: |
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            echo "Release already exists: $RELEASE_TAG"
+            exit 0
+          fi
+          printf 'Commit: %s\nCounterStrikeSharp.API: %s\n\nBuilt and tested automatically. Extract the ZIP into the game/csgo directory.\n' "$COMMIT_SHA" "$CSS_VERSION" > release-notes.md
+          gh release create "$RELEASE_TAG" artifacts/CustomWeapons-v*.zip artifacts/SHA256SUMS.txt \
+            --target "$COMMIT_SHA" --title "CustomWeapons ($CSS_VERSION / ${COMMIT_SHA:0:12})" \
+            --notes-file release-notes.md --latest
