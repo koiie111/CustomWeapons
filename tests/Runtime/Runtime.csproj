@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <PluginSource Condition="'$(PluginSource)' == ''">../../src/CustomWeapons</PluginSource>
+    <CoreProject Condition="'$(CoreProject)' == ''">../../src/CustomWeapons.Core/CustomWeapons.Core.csproj</CoreProject>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(CoreProject)" />
+    <Compile Include="$(PluginSource)/CustomWeaponsPlugin.cs" Link="CustomWeaponsPlugin.cs" />
+    <Compile Include="$(PluginSource)/PluginConfig.cs" Link="PluginConfig.cs" />
+  </ItemGroup>
+</Project>

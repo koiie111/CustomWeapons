@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.3-perf.2 — 2026-11-10
+
+- Reject MySQL results from an earlier map and request a fresh snapshot before publishing access or applying models.
+- Skip definition lookup/normalization for already painted handles during non-forced inventory applications.
+- Add production callback checks, a baseline/candidate synthetic harness, and the 20 original CSSProfiler exports with an offline integrity/distribution verifier.
+
 ## 1.0.3-perf.1 — 2026-11-10
 
 - When no grenade category is configured, omit the projectile entity-spawn listener as well as the existing tick listener. Gun and knife model application and entity-deletion cleanup remain registered.

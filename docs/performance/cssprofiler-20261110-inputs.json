@@ -1,0 +1,26 @@
+{
+  "archive": "cssprofiler-20261110-raw.zip",
+  "archive_sha256": "f126d46acf9fa74933e49577609667bebc2e5d7fe8a5f55875380db2494d1738",
+  "profiles": {
+    "baseline-entities-0.speedscope.json": "14c303553158d1075ea9c8a61fee9ec266fe51258c35432c269194435589b9c1",
+    "baseline-entities-1.speedscope.json": "fa125c27969013f875af1d76a9b988479bbf9b68fcf48ae57105363270eaa2cf",
+    "baseline-entities-2.speedscope.json": "a53878e447e6877d2a3fd0c939dcd67f913a157fc64818bd796bd4269c0ce159",
+    "baseline-idle-0.speedscope.json": "426c3e49af20865dc4533b0cc3162a6241f710936e0a49d4f7ab0b044ae71cd7",
+    "baseline-idle-1.speedscope.json": "c2e79b03cc5e849b55f7ed0c58cd0240609fce3ffc79013c1701c47e46f52e3b",
+    "baseline-idle-2.speedscope.json": "e903708899e85157ac113e59a892d7ce5788f213ce39f91d7f9c15f9c53d9f8c",
+    "fixed-entities-0.speedscope.json": "2e5fee116d0c53f58a5fe210527ff1071cbd7afd175298ee5a8c3fcdbfd387ce",
+    "fixed-entities-1.speedscope.json": "023cfd4fc4b6befc07a248e50e86658b2f286e5cb8196b2f6391a0fc2411c3f3",
+    "fixed-entities-2.speedscope.json": "0119b62f501e27d7fc4f28d4c45998a8f6b6001f8e4b4ca07101b96a0e1ce975",
+    "fixed-grenades-entities-0.speedscope.json": "045bb67f4cee3f063e3e8fb08e771de06f58d5ed54f5b839bd574b6b07d38576",
+    "fixed-grenades-entities-1.speedscope.json": "605a7ae392205b73ad3a56e74e4680cdf5b899a1563d568abe1764a3ea454158",
+    "fixed-idle-0.speedscope.json": "2f412e1fdf593539dd914529753a13c8b740e5ebcf55bf25329f9b8ec9b0370a",
+    "fixed-idle-1.speedscope.json": "449f4ac7e89c73ee59d4637a5cbd3de1ea9820079a587dc4887561e9a15a73a3",
+    "fixed-idle-2.speedscope.json": "bc8b5ed29cb8d34ba14826e659bc97d3998a784f279d3be9b812534281624497",
+    "main-entities-0.speedscope.json": "d4d521e62db85ec8822966592a61f57944ce6b1f4d0c4c35a3af0cdae4f3e389",
+    "main-entities-1.speedscope.json": "3b28967e05a2f067581610b0faabac2aeb99322a01c5334bcb82d2e8c91411d1",
+    "main-entities-2.speedscope.json": "2b80492c0cac792c5c1e577c0c2f34e6dbcf6d6903722fe72ab0988b4f7f7377",
+    "main-idle-0.speedscope.json": "436682378273d94bcefad7d13131eaffbb653de521110b97efa52ead75368a22",
+    "main-idle-1.speedscope.json": "4f9276a5b6afc09fea9985883ca99001de95fc5efea4e22640980c0e896d0a73",
+    "main-idle-2.speedscope.json": "97b4cb1caee65712a9c7b2cacf4b8648d353cb6816ba349b7620bef9c65eea50"
+  }
+}

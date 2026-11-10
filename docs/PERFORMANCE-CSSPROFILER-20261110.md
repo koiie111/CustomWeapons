@@ -115,4 +115,6 @@ Maxima are observed elapsed-time outliers, not upper bounds or proof of a specif
 }
 ```
 
-The compact machine-readable aggregate is in `performance/cssprofiler-20261110-summary.json`. Raw speedscope exports, full observation metadata, probe source and the analysis script are retained in the private task evidence bundle; it contains no game/database credentials. The original production configuration backup remains only on the server, outside plugin autoload paths.
+The compact machine-readable aggregate is in `performance/cssprofiler-20261110-summary.json`. The 20 original exports are now also published in `performance/cssprofiler-20261110-raw.zip`, with frozen hashes in `performance/cssprofiler-20261110-inputs.json`; run `python tests/verify_profiles.py` to independently check hashes, event stacks and every published distribution. Full observation metadata, probe source and the original analysis script remain in the private task evidence bundle. The original production configuration backup remains only on the server, outside plugin autoload paths.
+
+The later [perf.2 review](REVIEW-O4-20261110.md) fixes a map-lifetime guard and skips repeated definition reads. These original profiles still describe perf.1, not the newer binary.
