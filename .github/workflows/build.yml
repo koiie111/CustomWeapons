@@ -48,6 +48,8 @@ jobs:
         run: |
           python3 tests/verify_profiles.py
           python3 tests/verify_synthetic.py
+          python3 tests/verify_held_refresh_perf.py
+          python3 docs/acceptance/held-model-20261110/verify.py
       - uses: actions/upload-artifact@v4
         with:
           name: CustomWeapons

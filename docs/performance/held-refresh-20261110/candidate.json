@@ -1,0 +1,270 @@
+{
+  "synthetic": true,
+  "runtime": "10.0.11",
+  "rows": [
+    {
+      "active": 0,
+      "name": "tick",
+      "window": 0,
+      "iterations": 10000,
+      "ns_per_call": 21.82,
+      "bytes_per_call": 0,
+      "player_scans": 0,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 0,
+      "name": "tick",
+      "window": 1,
+      "iterations": 10000,
+      "ns_per_call": 21.83,
+      "bytes_per_call": 0,
+      "player_scans": 0,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 0,
+      "name": "tick",
+      "window": 2,
+      "iterations": 10000,
+      "ns_per_call": 22.48,
+      "bytes_per_call": 0,
+      "player_scans": 0,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 0,
+      "name": "safety",
+      "window": 0,
+      "iterations": 10000,
+      "ns_per_call": 3281.67,
+      "bytes_per_call": 2016,
+      "player_scans": 10000,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 0,
+      "name": "safety",
+      "window": 1,
+      "iterations": 10000,
+      "ns_per_call": 2978.9,
+      "bytes_per_call": 2016,
+      "player_scans": 10000,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 0,
+      "name": "safety",
+      "window": 2,
+      "iterations": 10000,
+      "ns_per_call": 2960.75,
+      "bytes_per_call": 2016,
+      "player_scans": 10000,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 1,
+      "name": "tick",
+      "window": 0,
+      "iterations": 10000,
+      "ns_per_call": 70.13,
+      "bytes_per_call": 24,
+      "player_scans": 0,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 1,
+      "name": "tick",
+      "window": 1,
+      "iterations": 10000,
+      "ns_per_call": 79.26,
+      "bytes_per_call": 24,
+      "player_scans": 0,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 1,
+      "name": "tick",
+      "window": 2,
+      "iterations": 10000,
+      "ns_per_call": 66.1,
+      "bytes_per_call": 24,
+      "player_scans": 0,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 1,
+      "name": "safety",
+      "window": 0,
+      "iterations": 10000,
+      "ns_per_call": 3053.94,
+      "bytes_per_call": 2072,
+      "player_scans": 10000,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 1,
+      "name": "safety",
+      "window": 1,
+      "iterations": 10000,
+      "ns_per_call": 3037.78,
+      "bytes_per_call": 2072,
+      "player_scans": 10000,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 1,
+      "name": "safety",
+      "window": 2,
+      "iterations": 10000,
+      "ns_per_call": 3041.06,
+      "bytes_per_call": 2072,
+      "player_scans": 10000,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 8,
+      "name": "tick",
+      "window": 0,
+      "iterations": 10000,
+      "ns_per_call": 463.58,
+      "bytes_per_call": 192,
+      "player_scans": 0,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 8,
+      "name": "tick",
+      "window": 1,
+      "iterations": 10000,
+      "ns_per_call": 471.08,
+      "bytes_per_call": 192,
+      "player_scans": 0,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 8,
+      "name": "tick",
+      "window": 2,
+      "iterations": 10000,
+      "ns_per_call": 445.52,
+      "bytes_per_call": 192,
+      "player_scans": 0,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 8,
+      "name": "safety",
+      "window": 0,
+      "iterations": 10000,
+      "ns_per_call": 3166.62,
+      "bytes_per_call": 2072,
+      "player_scans": 10000,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 8,
+      "name": "safety",
+      "window": 1,
+      "iterations": 10000,
+      "ns_per_call": 3182.97,
+      "bytes_per_call": 2072,
+      "player_scans": 10000,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 8,
+      "name": "safety",
+      "window": 2,
+      "iterations": 10000,
+      "ns_per_call": 3166.22,
+      "bytes_per_call": 2072,
+      "player_scans": 10000,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 32,
+      "name": "tick",
+      "window": 0,
+      "iterations": 10000,
+      "ns_per_call": 1863.17,
+      "bytes_per_call": 768,
+      "player_scans": 0,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 32,
+      "name": "tick",
+      "window": 1,
+      "iterations": 10000,
+      "ns_per_call": 1837.33,
+      "bytes_per_call": 768,
+      "player_scans": 0,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 32,
+      "name": "tick",
+      "window": 2,
+      "iterations": 10000,
+      "ns_per_call": 1815.03,
+      "bytes_per_call": 768,
+      "player_scans": 0,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 32,
+      "name": "safety",
+      "window": 0,
+      "iterations": 10000,
+      "ns_per_call": 3653.12,
+      "bytes_per_call": 2072,
+      "player_scans": 10000,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 32,
+      "name": "safety",
+      "window": 1,
+      "iterations": 10000,
+      "ns_per_call": 3625.03,
+      "bytes_per_call": 2072,
+      "player_scans": 10000,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 32,
+      "name": "safety",
+      "window": 2,
+      "iterations": 10000,
+      "ns_per_call": 3622.89,
+      "bytes_per_call": 2072,
+      "player_scans": 10000,
+      "definition_reads": 0,
+      "model_writes": 32
+    }
+  ]
+}

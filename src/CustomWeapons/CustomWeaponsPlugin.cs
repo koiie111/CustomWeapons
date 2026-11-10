@@ -13,10 +13,10 @@ using Microsoft.Extensions.Logging;
 namespace CustomWeapons;
 
 [MinimumApiVersion(375)]
-public sealed class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig>
+public sealed partial class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig>
 {
     public override string ModuleName => "CustomWeapons";
-    public override string ModuleVersion => "1.0.3-perf.2";
+    public override string ModuleVersion => "1.0.4-rc.4";
     public override string ModuleAuthor => "koiie111";
     public override string ModuleDescription => "Custom weapon models with MySQL access and local selections";
     public PluginConfig Config { get; set; } = new();
@@ -30,6 +30,9 @@ public sealed class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig
         public InventorySnapshot Inventory { get; } = new();
         public List<uint> InventoryScratch { get; } = [];
         public double NextSweep { get; set; }
+        public HeldCheck? HeldCheck { get; set; }
+        public HeldRefresh? HeldRefresh { get; set; }
+        public Dictionary<uint, (uint Pawn, string? Model, ushort Definition)> HeldModels { get; } = [];
     }
     private sealed record Applied(string OriginalModel, string Model);
     private readonly Dictionary<int, Session> _sessions = new();
@@ -89,6 +92,7 @@ public sealed class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig
             _modelWarnings.Clear();
             _grenades.Clear();
             _grenadeHolders.Clear();
+            ClearHeldRefreshes(false);
         });
         AddCommand("css_cw", "Открыть меню CustomWeapons", (player, _) => OpenWeapons(player));
         AddCommand("css_customweapons", "Открыть меню CustomWeapons", (player, _) => OpenWeapons(player));
@@ -106,6 +110,7 @@ public sealed class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig
             _grenadeHolders.Remove(slot);
             if (_sessions.Remove(slot, out var session))
             {
+                CancelHeldRefresh(session, false);
                 _selections.Disconnect(session.SteamId);
                 _menus.Remove(session.Controller);
             }
@@ -118,14 +123,37 @@ public sealed class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig
         {
             EnsureSession(ev.Userid); RequestRefresh(); return HookResult.Continue;
         });
-        RegisterEventHandler<EventPlayerSpawn>((ev, _) => { Schedule(ev.Userid); return HookResult.Continue; });
-        RegisterEventHandler<EventItemPickup>((ev, _) => { Schedule(ev.Userid); return HookResult.Continue; });
-        if (_trackGrenades) RegisterEventHandler<EventItemEquip>((ev, _) =>
+        RegisterEventHandler<EventPlayerSpawn>((ev, _) =>
         {
-            if (EnsureSession(ev.Userid) is not null) _grenadeHolders.Add(ev.Userid!.Slot);
+            if (EnsureSession(ev.Userid) is {} session) CancelHeldRefresh(session, false);
+            Schedule(ev.Userid); return HookResult.Continue;
+        });
+        RegisterEventHandler<EventPlayerDeath>((ev, _) =>
+        {
+            if (ev.Userid != null && _sessions.TryGetValue(ev.Userid.Slot, out var session)) CancelHeldRefresh(session, false);
             return HookResult.Continue;
         });
-        RegisterListener<Listeners.OnEntityDeleted>(entity => _applied.Remove(entity.EntityHandle.Raw));
+        RegisterEventHandler<EventRoundStart>((_, _) => { ClearHeldRefreshes(false); return HookResult.Continue; });
+        RegisterEventHandler<EventRoundEnd>((_, _) => { ClearHeldRefreshes(false); return HookResult.Continue; });
+        RegisterEventHandler<EventItemPickup>((ev, _) =>
+        {
+            Schedule(ev.Userid);
+            QueueHeldCheck(ev.Userid, false, ev.Defindex);
+            return HookResult.Continue;
+        });
+        RegisterEventHandler<EventItemEquip>((ev, _) =>
+        {
+            if (_trackGrenades && EnsureSession(ev.Userid) is not null) _grenadeHolders.Add(ev.Userid!.Slot);
+            QueueHeldCheck(ev.Userid);
+            return HookResult.Continue;
+        });
+        RegisterListener<Listeners.OnEntityDeleted>(entity =>
+        {
+            var raw = entity.EntityHandle.Raw;
+            _applied.Remove(raw);
+            // Retiring a weapon is expected: the replacement callback waits for
+            // this complete handle to become invalid before granting the new one.
+        });
         // Projectile tracking cannot apply a model without a configured grenade skin.
         // Avoid entering managed code for every entity spawn in gun-only configurations.
         if (_trackGrenades)
@@ -174,6 +202,7 @@ public sealed class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig
             existing.Controller == player.EntityHandle.Raw) return existing;
         if (existing != null)
         {
+            CancelHeldRefresh(existing, false);
             _selections.Disconnect(existing.SteamId);
             _menus.Remove(existing.Controller);
             _grenadeHolders.Remove(player.Slot);
@@ -320,6 +349,7 @@ public sealed class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig
         _selections.Set(session.SteamId, weapon, id);
         session.NextChange = Now + Config.CooldownSeconds;
         ApplyInventory(player, weapon);
+        QueueHeldCheck(player, true, changedCategory: weapon);
         Tell(player, "Выбор сохранён. Он применяется к вашему оружию этого типа.");
         OpenSkins(player, weapon);
     }
@@ -359,27 +389,34 @@ public sealed class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig
             var selected = Selected(session, category);
             if (string.IsNullOrEmpty(selected))
             {
-                if (forceWeapon != null) Revert(raw);
+                if (forceWeapon != null && _applied.ContainsKey(raw))
+                {
+                    Revert(raw);
+                    // The player can revert an inactive gun. Remember that it
+                    // still needs a deploy even though _applied no longer owns it.
+                    RememberHeldModel(session, pawn.EntityHandle.Raw, weapon, null);
+                }
                 continue;
             }
             if (Config.Weapons[category].Skins.TryGetValue(selected, out var skin) && Allowed(session, selected, skin))
-                ApplyModel(weapon, skin.Model);
+                if (ApplyModel(weapon, skin.Model)) QueueHeldCheck(player);
         }
     }
 
-    private void ApplyModel(CBaseModelEntity entity, string model)
+    private bool ApplyModel(CBaseModelEntity entity, string model)
     {
-        if (!_precached.Contains(model) || !entity.IsValid) return;
+        if (!_precached.Contains(model) || !entity.IsValid) return false;
         var raw = entity.EntityHandle.Raw;
-        if (_applied.TryGetValue(raw, out var old) && old.Model == model) return;
+        if (_applied.TryGetValue(raw, out var old) && old.Model == model) return false;
         var original = old?.OriginalModel ?? entity.CBodyComponent?.SceneNode?.GetSkeletonInstance()?.ModelState.ModelName;
         if (string.IsNullOrWhiteSpace(original))
         {
             if (_modelWarnings.Add(model)) Logger.LogWarning("Cannot capture original model for {Model}; application skipped.", model);
-            return;
+            return false;
         }
         entity.SetModel(model);
         _applied[raw] = new(original, model);
+        return true;
     }
 
     private void Revert(uint raw)
@@ -451,6 +488,7 @@ public sealed class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig
             try { if (mapReady) Revert(raw); }
             catch (Exception ex) { Logger.LogWarning("Failed to restore entity {Handle}: {Type}", raw, ex.GetType().Name); }
         }
+        ClearHeldRefreshes(mapReady);
         foreach (var player in mapReady ? Utilities.GetPlayers() : [])
             if (_menus.TryGetValue(player.EntityHandle.Raw, out var menu) && ReferenceEquals(MenuManager.GetActiveMenu(player), menu))
                 MenuManager.CloseActiveMenu(player);
