@@ -1,0 +1,86 @@
+{
+  "total": 9,
+  "samples": [
+    {
+      "sequence": 1,
+      "utc": "2026-11-10T14:27:30.796767+00:00",
+      "raw": 3956015504,
+      "name": "flashbang_projectile",
+      "thrower": 1599602822,
+      "original_thrower": 1599602822,
+      "model": "models/chicken/chicken.vmdl"
+    },
+    {
+      "sequence": 2,
+      "utc": "2026-11-10T14:27:39.5914514+00:00",
+      "raw": 489423250,
+      "name": "flashbang_projectile",
+      "thrower": 1599602822,
+      "original_thrower": 1599602822,
+      "model": "models/chicken/chicken.vmdl"
+    },
+    {
+      "sequence": 3,
+      "utc": "2026-11-10T14:30:23.1381557+00:00",
+      "raw": 649691543,
+      "name": "hegrenade_projectile",
+      "thrower": 1599602822,
+      "original_thrower": 1599602822,
+      "model": "models/chicken/chicken.vmdl"
+    },
+    {
+      "sequence": 4,
+      "utc": "2026-11-10T14:30:25.2480685+00:00",
+      "raw": 2732622232,
+      "name": "smokegrenade_projectile",
+      "thrower": 1599602822,
+      "original_thrower": 1599602822,
+      "model": "models/chicken/chicken.vmdl"
+    },
+    {
+      "sequence": 5,
+      "utc": "2026-11-10T14:30:27.2795744+00:00",
+      "raw": 946766234,
+      "name": "decoy_projectile",
+      "thrower": 1599602822,
+      "original_thrower": 1599602822,
+      "model": "models/chicken/chicken.vmdl"
+    },
+    {
+      "sequence": 6,
+      "utc": "2026-11-10T14:32:15.2789463+00:00",
+      "raw": 487031197,
+      "name": "molotov_projectile",
+      "thrower": 1599602822,
+      "original_thrower": 1599602822,
+      "model": "models/chicken/chicken.vmdl"
+    },
+    {
+      "sequence": 7,
+      "utc": "2026-11-10T14:33:01.0914247+00:00",
+      "raw": 948109729,
+      "name": "molotov_projectile",
+      "thrower": 1599602822,
+      "original_thrower": 1599602822,
+      "model": "models/chicken/chicken.vmdl"
+    },
+    {
+      "sequence": 8,
+      "utc": "2026-11-10T14:40:29.3681622+00:00",
+      "raw": 3360981433,
+      "name": "flashbang_projectile",
+      "thrower": 566132876,
+      "original_thrower": 566132876,
+      "model": "models/chicken/chicken.vmdl"
+    },
+    {
+      "sequence": 9,
+      "utc": "2026-11-10T14:41:37.9951827+00:00",
+      "raw": 473137595,
+      "name": "flashbang_projectile",
+      "thrower": 566132876,
+      "original_thrower": 566132876,
+      "model": "models/chicken/chicken.vmdl"
+    }
+  ]
+}

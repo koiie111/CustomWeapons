@@ -1,0 +1,14 @@
+{
+  "total": 10,
+  "samples": [
+    {
+      "sequence": 10,
+      "utc": "2026-11-10T14:49:55.5652599+00:00",
+      "raw": 2896593355,
+      "name": "flashbang_projectile",
+      "thrower": 4079288411,
+      "original_thrower": 4079288411,
+      "model": "models/chicken/chicken.vmdl"
+    }
+  ]
+}

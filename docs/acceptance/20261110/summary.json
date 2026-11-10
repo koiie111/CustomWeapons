@@ -1,0 +1,157 @@
+{
+  "date": "2026-11-10",
+  "server": 17,
+  "map": "de_mirage",
+  "timezone": "Europe/Saratov",
+  "scope": "one real client; temporary locked public instance; no performance profiling",
+  "version": "1.0.3-perf.2",
+  "source_merge": "6a1ff61e8c914ff8df7f16848595176d122d3f5f",
+  "tested_dll_sha256": "587c60b80366144759252166feb1525b1886cdd77dc3b42bc5bbc60f022f117b",
+  "tested_core_sha256": "072f9fdcaa87231374c0433b765b2a5ce7b20c9bcd7a7bf7b070158bd8c3eb34",
+  "decision": "single-client checks completed with known first-person refresh failure; full acceptance pending",
+  "cases": {
+    "stock_fresh_instance": "passed",
+    "same_handle_server_and_ground_model_switch": "passed",
+    "existing_instance_first_person_after_selection_and_pickup": "failed",
+    "fresh_instance_first_person_with_selection_already_active": "passed_owner_confirmed",
+    "reconnect_new_inventory_and_first_person": "passed_owner_confirmed",
+    "death_drop_and_new_pawn_throw": "passed_owner_confirmed",
+    "map_reload_and_post_map_new_weapon_and_throw": "passed_owner_confirmed",
+    "two_client_transfer": "not_run_owner_chose_single_client",
+    "private_expiry_and_database_outage_live": "not_run",
+    "real_custom_grenade_pack_animation": "not_run_placeholder_model",
+    "snowball": "not_run_availability_unproven",
+    "rapid_two_flash_cadence": "not_established_8.795_second_gap",
+    "full_tick_or_cpu_improvement": "not_measured"
+  },
+  "projectile_counts": {
+    "flashbang_projectile": 5,
+    "hegrenade_projectile": 1,
+    "smokegrenade_projectile": 1,
+    "decoy_projectile": 1,
+    "molotov_projectile": 2
+  },
+  "projectile_samples": [
+    {
+      "sequence": 1,
+      "utc": "2026-11-10T14:27:30.796767+00:00",
+      "raw": 3956015504,
+      "name": "flashbang_projectile",
+      "thrower": 1599602822,
+      "original_thrower": 1599602822,
+      "model": "models/chicken/chicken.vmdl",
+      "saratov_time": "2026-11-10T18:27:30.796767+04:00"
+    },
+    {
+      "sequence": 2,
+      "utc": "2026-11-10T14:27:39.5914514+00:00",
+      "raw": 489423250,
+      "name": "flashbang_projectile",
+      "thrower": 1599602822,
+      "original_thrower": 1599602822,
+      "model": "models/chicken/chicken.vmdl",
+      "saratov_time": "2026-11-10T18:27:39.591451+04:00"
+    },
+    {
+      "sequence": 3,
+      "utc": "2026-11-10T14:30:23.1381557+00:00",
+      "raw": 649691543,
+      "name": "hegrenade_projectile",
+      "thrower": 1599602822,
+      "original_thrower": 1599602822,
+      "model": "models/chicken/chicken.vmdl",
+      "saratov_time": "2026-11-10T18:30:23.138155+04:00"
+    },
+    {
+      "sequence": 4,
+      "utc": "2026-11-10T14:30:25.2480685+00:00",
+      "raw": 2732622232,
+      "name": "smokegrenade_projectile",
+      "thrower": 1599602822,
+      "original_thrower": 1599602822,
+      "model": "models/chicken/chicken.vmdl",
+      "saratov_time": "2026-11-10T18:30:25.248068+04:00"
+    },
+    {
+      "sequence": 5,
+      "utc": "2026-11-10T14:30:27.2795744+00:00",
+      "raw": 946766234,
+      "name": "decoy_projectile",
+      "thrower": 1599602822,
+      "original_thrower": 1599602822,
+      "model": "models/chicken/chicken.vmdl",
+      "saratov_time": "2026-11-10T18:30:27.279574+04:00"
+    },
+    {
+      "sequence": 6,
+      "utc": "2026-11-10T14:32:15.2789463+00:00",
+      "raw": 487031197,
+      "name": "molotov_projectile",
+      "thrower": 1599602822,
+      "original_thrower": 1599602822,
+      "model": "models/chicken/chicken.vmdl",
+      "saratov_time": "2026-11-10T18:32:15.278946+04:00"
+    },
+    {
+      "sequence": 7,
+      "utc": "2026-11-10T14:33:01.0914247+00:00",
+      "raw": 948109729,
+      "name": "molotov_projectile",
+      "thrower": 1599602822,
+      "original_thrower": 1599602822,
+      "model": "models/chicken/chicken.vmdl",
+      "saratov_time": "2026-11-10T18:33:01.091424+04:00"
+    },
+    {
+      "sequence": 8,
+      "utc": "2026-11-10T14:40:29.3681622+00:00",
+      "raw": 3360981433,
+      "name": "flashbang_projectile",
+      "thrower": 566132876,
+      "original_thrower": 566132876,
+      "model": "models/chicken/chicken.vmdl",
+      "saratov_time": "2026-11-10T18:40:29.368162+04:00"
+    },
+    {
+      "sequence": 9,
+      "utc": "2026-11-10T14:41:37.9951827+00:00",
+      "raw": 473137595,
+      "name": "flashbang_projectile",
+      "thrower": 566132876,
+      "original_thrower": 566132876,
+      "model": "models/chicken/chicken.vmdl",
+      "saratov_time": "2026-11-10T18:41:37.995182+04:00"
+    },
+    {
+      "sequence": 10,
+      "utc": "2026-11-10T14:49:55.5652599+00:00",
+      "raw": 2896593355,
+      "name": "flashbang_projectile",
+      "thrower": 4079288411,
+      "original_thrower": 4079288411,
+      "model": "models/chicken/chicken.vmdl",
+      "saratov_time": "2026-11-10T18:49:55.565259+04:00"
+    }
+  ],
+  "related_errors_after_map": 0,
+  "restoration": {
+    "all_original_plugin_dlls_restored": true,
+    "config_restored": true,
+    "gamecfg_restored": true,
+    "data_preserved": true,
+    "helpers_removed": true,
+    "restored_customweapons_sha256": "9c8e48d61659919c311a72730803f44adcbf63a863e662f2990d840d7d65ab6d",
+    "entry_open": true,
+    "profiler_idle": true,
+    "loaded_modules": 46,
+    "pid": 4073581
+  },
+  "protocol_notes": [
+    "QA AK entry duplicated first Daedalos model; control corrected to explicit stock then custom on same handle.",
+    "Old first-person behavior reproduced; no exact historical-binary A/B, so new regression not established.",
+    "Temporary SaveSelections=false; no shop entitlements or DB state changed.",
+    "After map reload warmup defaults returned and owner died during first grant attempt; fixture corrected to paused warmup before final valid smoke.",
+    "One cold start for candidate, one empty-only map reload, one empty-only cold cycle restoring original.",
+    "CSSProfiler left loaded and idle as found."
+  ]
+}
