@@ -14,7 +14,7 @@ for name in ('held-refresh-20261110', 'held-replacement-20261110'):
         assert set(source.namelist()) == set(manifest['sources'])
         for name, expected in manifest['sources'].items():
             assert hashlib.sha256(source.read(name)).hexdigest() == expected, name
-    
+
     docs = []
     for name, expected in manifest['results'].items():
         data = (root / name).read_bytes().replace(b'\r\n', b'\n')
