@@ -1,0 +1,884 @@
+{
+  "windows": [
+    {
+      "name": "baseline-idle-0",
+      "label": "baseline",
+      "scenario": "idle",
+      "registered_labels": [
+        "CustomWeapons | event:player_connect_full",
+        "CustomWeapons | event:player_spawn",
+        "CustomWeapons | event:item_pickup",
+        "CustomWeapons | listener:OnMapStart",
+        "CustomWeapons | listener:OnServerPrecacheResources",
+        "CustomWeapons | listener:OnMapEnd",
+        "CustomWeapons | listener:OnClientDisconnect",
+        "CustomWeapons | listener:OnClientAuthorized",
+        "CustomWeapons | listener:OnEntityDeleted",
+        "CustomWeapons | listener:OnEntitySpawned",
+        "CustomWeapons | listener:OnTick"
+      ],
+      "handlers": {
+        "CustomWeapons | listener:OnTick": {
+          "calls": 1919,
+          "total_ms": 3.292252000079409,
+          "mean_us": 1.7156081292753564,
+          "p50_us": 1.6770000001997687,
+          "p95_us": 2.3199000003842225,
+          "p99_us": 2.99748000049476,
+          "max_us": 47.60100000203238
+        }
+      },
+      "total_profiled_ms": 3.292252000079409
+    },
+    {
+      "name": "baseline-idle-1",
+      "label": "baseline",
+      "scenario": "idle",
+      "registered_labels": [
+        "CustomWeapons | event:player_connect_full",
+        "CustomWeapons | event:player_spawn",
+        "CustomWeapons | event:item_pickup",
+        "CustomWeapons | listener:OnMapStart",
+        "CustomWeapons | listener:OnServerPrecacheResources",
+        "CustomWeapons | listener:OnMapEnd",
+        "CustomWeapons | listener:OnClientDisconnect",
+        "CustomWeapons | listener:OnClientAuthorized",
+        "CustomWeapons | listener:OnEntityDeleted",
+        "CustomWeapons | listener:OnEntitySpawned",
+        "CustomWeapons | listener:OnTick"
+      ],
+      "handlers": {
+        "CustomWeapons | listener:OnTick": {
+          "calls": 1919,
+          "total_ms": 3.1596700000052853,
+          "mean_us": 1.646519020325839,
+          "p50_us": 1.6529999993508682,
+          "p95_us": 2.1023000002969634,
+          "p99_us": 2.9332800001793657,
+          "max_us": 12.079000000085216
+        }
+      },
+      "total_profiled_ms": 3.1596700000052853
+    },
+    {
+      "name": "baseline-idle-2",
+      "label": "baseline",
+      "scenario": "idle",
+      "registered_labels": [
+        "CustomWeapons | event:player_connect_full",
+        "CustomWeapons | event:player_spawn",
+        "CustomWeapons | event:item_pickup",
+        "CustomWeapons | listener:OnMapStart",
+        "CustomWeapons | listener:OnServerPrecacheResources",
+        "CustomWeapons | listener:OnMapEnd",
+        "CustomWeapons | listener:OnClientDisconnect",
+        "CustomWeapons | listener:OnClientAuthorized",
+        "CustomWeapons | listener:OnEntityDeleted",
+        "CustomWeapons | listener:OnEntitySpawned",
+        "CustomWeapons | listener:OnTick"
+      ],
+      "handlers": {
+        "CustomWeapons | listener:OnTick": {
+          "calls": 1919,
+          "total_ms": 3.2059370000660143,
+          "mean_us": 1.6706289734580584,
+          "p50_us": 1.673000000664615,
+          "p95_us": 2.1756000013738226,
+          "p99_us": 3.0273799996211883,
+          "max_us": 17.98199999939243
+        }
+      },
+      "total_profiled_ms": 3.2059370000660143
+    },
+    {
+      "name": "baseline-entities-0",
+      "label": "baseline",
+      "scenario": "entities",
+      "registered_labels": [
+        "CustomWeapons | event:player_connect_full",
+        "CustomWeapons | event:player_spawn",
+        "CustomWeapons | event:item_pickup",
+        "CustomWeapons | listener:OnMapStart",
+        "CustomWeapons | listener:OnServerPrecacheResources",
+        "CustomWeapons | listener:OnMapEnd",
+        "CustomWeapons | listener:OnClientDisconnect",
+        "CustomWeapons | listener:OnClientAuthorized",
+        "CustomWeapons | listener:OnEntityDeleted",
+        "CustomWeapons | listener:OnEntitySpawned",
+        "CustomWeapons | listener:OnTick"
+      ],
+      "handlers": {
+        "CustomWeapons | listener:OnTick": {
+          "calls": 1919,
+          "total_ms": 2.9479459999787627,
+          "mean_us": 1.5361886399055564,
+          "p50_us": 1.5269999985321192,
+          "p95_us": 2.1550999997771214,
+          "p99_us": 2.895139999491219,
+          "max_us": 7.776999999919099
+        },
+        "CustomWeapons | listener:OnEntitySpawned": {
+          "calls": 600,
+          "total_ms": 4.373918999999383,
+          "mean_us": 7.28986499999897,
+          "p50_us": 6.931500000007418,
+          "p95_us": 12.050150001232392,
+          "p99_us": 16.13450999830092,
+          "max_us": 21.096000000397908
+        },
+        "CustomWeapons | listener:OnEntityDeleted": {
+          "calls": 600,
+          "total_ms": 1.9846690000021852,
+          "mean_us": 3.3077816666703086,
+          "p50_us": 2.8864999998177154,
+          "p95_us": 5.463349997808109,
+          "p99_us": 6.677839998774271,
+          "max_us": 273.6560000012105
+        }
+      },
+      "total_profiled_ms": 9.306533999980331
+    },
+    {
+      "name": "baseline-entities-1",
+      "label": "baseline",
+      "scenario": "entities",
+      "registered_labels": [
+        "CustomWeapons | event:player_connect_full",
+        "CustomWeapons | event:player_spawn",
+        "CustomWeapons | event:item_pickup",
+        "CustomWeapons | listener:OnMapStart",
+        "CustomWeapons | listener:OnServerPrecacheResources",
+        "CustomWeapons | listener:OnMapEnd",
+        "CustomWeapons | listener:OnClientDisconnect",
+        "CustomWeapons | listener:OnClientAuthorized",
+        "CustomWeapons | listener:OnEntityDeleted",
+        "CustomWeapons | listener:OnEntitySpawned",
+        "CustomWeapons | listener:OnTick"
+      ],
+      "handlers": {
+        "CustomWeapons | listener:OnTick": {
+          "calls": 1919,
+          "total_ms": 3.1973130000172283,
+          "mean_us": 1.6661349661371694,
+          "p50_us": 1.6810000015539117,
+          "p95_us": 2.252300000202467,
+          "p99_us": 2.9976599989822708,
+          "max_us": 16.068999997514766
+        },
+        "CustomWeapons | listener:OnEntitySpawned": {
+          "calls": 598,
+          "total_ms": 6.889512999997407,
+          "mean_us": 11.520924749159544,
+          "p50_us": 6.914500000675616,
+          "p95_us": 12.451850000434206,
+          "p99_us": 28.035389999968164,
+          "max_us": 1724.9640000009094
+        },
+        "CustomWeapons | listener:OnEntityDeleted": {
+          "calls": 598,
+          "total_ms": 2.575552000048191,
+          "mean_us": 4.306943143893295,
+          "p50_us": 2.9584999992948724,
+          "p95_us": 5.581049997636,
+          "p99_us": 9.522889999134325,
+          "max_us": 395.7249999984924
+        }
+      },
+      "total_profiled_ms": 12.662378000062827
+    },
+    {
+      "name": "baseline-entities-2",
+      "label": "baseline",
+      "scenario": "entities",
+      "registered_labels": [
+        "CustomWeapons | event:player_connect_full",
+        "CustomWeapons | event:player_spawn",
+        "CustomWeapons | event:item_pickup",
+        "CustomWeapons | listener:OnMapStart",
+        "CustomWeapons | listener:OnServerPrecacheResources",
+        "CustomWeapons | listener:OnMapEnd",
+        "CustomWeapons | listener:OnClientDisconnect",
+        "CustomWeapons | listener:OnClientAuthorized",
+        "CustomWeapons | listener:OnEntityDeleted",
+        "CustomWeapons | listener:OnEntitySpawned",
+        "CustomWeapons | listener:OnTick"
+      ],
+      "handlers": {
+        "CustomWeapons | listener:OnTick": {
+          "calls": 1919,
+          "total_ms": 3.1173460000163518,
+          "mean_us": 1.6244637832289484,
+          "p50_us": 1.6410000025643967,
+          "p95_us": 2.300200000104269,
+          "p99_us": 3.0033999995976033,
+          "max_us": 6.26399999964633
+        },
+        "CustomWeapons | listener:OnEntitySpawned": {
+          "calls": 598,
+          "total_ms": 4.580464000002223,
+          "mean_us": 7.65963879599034,
+          "p50_us": 6.960000000162836,
+          "p95_us": 12.72095000003901,
+          "p99_us": 19.373500000619966,
+          "max_us": 63.65899999946123
+        },
+        "CustomWeapons | listener:OnEntityDeleted": {
+          "calls": 598,
+          "total_ms": 2.4496929999838812,
+          "mean_us": 4.096476588601808,
+          "p50_us": 2.975000000105865,
+          "p95_us": 5.575999999837222,
+          "p99_us": 8.950060001843566,
+          "max_us": 323.9069999981439
+        }
+      },
+      "total_profiled_ms": 10.147503000002455
+    },
+    {
+      "name": "main-idle-0",
+      "label": "main",
+      "scenario": "idle",
+      "registered_labels": [
+        "CustomWeapons | event:player_connect_full",
+        "CustomWeapons | event:player_spawn",
+        "CustomWeapons | event:item_pickup",
+        "CustomWeapons | listener:OnMapStart",
+        "CustomWeapons | listener:OnServerPrecacheResources",
+        "CustomWeapons | listener:OnMapEnd",
+        "CustomWeapons | listener:OnClientDisconnect",
+        "CustomWeapons | listener:OnClientAuthorized",
+        "CustomWeapons | listener:OnEntityDeleted",
+        "CustomWeapons | listener:OnEntitySpawned"
+      ],
+      "handlers": {},
+      "total_profiled_ms": 0
+    },
+    {
+      "name": "main-idle-1",
+      "label": "main",
+      "scenario": "idle",
+      "registered_labels": [
+        "CustomWeapons | event:player_connect_full",
+        "CustomWeapons | event:player_spawn",
+        "CustomWeapons | event:item_pickup",
+        "CustomWeapons | listener:OnMapStart",
+        "CustomWeapons | listener:OnServerPrecacheResources",
+        "CustomWeapons | listener:OnMapEnd",
+        "CustomWeapons | listener:OnClientDisconnect",
+        "CustomWeapons | listener:OnClientAuthorized",
+        "CustomWeapons | listener:OnEntityDeleted",
+        "CustomWeapons | listener:OnEntitySpawned"
+      ],
+      "handlers": {},
+      "total_profiled_ms": 0
+    },
+    {
+      "name": "main-idle-2",
+      "label": "main",
+      "scenario": "idle",
+      "registered_labels": [
+        "CustomWeapons | event:player_connect_full",
+        "CustomWeapons | event:player_spawn",
+        "CustomWeapons | event:item_pickup",
+        "CustomWeapons | listener:OnMapStart",
+        "CustomWeapons | listener:OnServerPrecacheResources",
+        "CustomWeapons | listener:OnMapEnd",
+        "CustomWeapons | listener:OnClientDisconnect",
+        "CustomWeapons | listener:OnClientAuthorized",
+        "CustomWeapons | listener:OnEntityDeleted",
+        "CustomWeapons | listener:OnEntitySpawned"
+      ],
+      "handlers": {},
+      "total_profiled_ms": 0
+    },
+    {
+      "name": "main-entities-0",
+      "label": "main",
+      "scenario": "entities",
+      "registered_labels": [
+        "CustomWeapons | event:player_connect_full",
+        "CustomWeapons | event:player_spawn",
+        "CustomWeapons | event:item_pickup",
+        "CustomWeapons | listener:OnMapStart",
+        "CustomWeapons | listener:OnServerPrecacheResources",
+        "CustomWeapons | listener:OnMapEnd",
+        "CustomWeapons | listener:OnClientDisconnect",
+        "CustomWeapons | listener:OnClientAuthorized",
+        "CustomWeapons | listener:OnEntityDeleted",
+        "CustomWeapons | listener:OnEntitySpawned"
+      ],
+      "handlers": {
+        "CustomWeapons | listener:OnEntitySpawned": {
+          "calls": 600,
+          "total_ms": 4.220310999992094,
+          "mean_us": 7.03385166665349,
+          "p50_us": 6.604999999581196,
+          "p95_us": 11.780499999713353,
+          "p99_us": 17.966879998093642,
+          "max_us": 58.606999999938125
+        },
+        "CustomWeapons | listener:OnEntityDeleted": {
+          "calls": 600,
+          "total_ms": 2.167444000049528,
+          "mean_us": 3.6124066667492136,
+          "p50_us": 2.7635000001282606,
+          "p95_us": 5.7352000017999645,
+          "p99_us": 10.077260001271494,
+          "max_us": 237.65800000182935
+        }
+      },
+      "total_profiled_ms": 6.387755000041622
+    },
+    {
+      "name": "main-entities-1",
+      "label": "main",
+      "scenario": "entities",
+      "registered_labels": [
+        "CustomWeapons | event:player_connect_full",
+        "CustomWeapons | event:player_spawn",
+        "CustomWeapons | event:item_pickup",
+        "CustomWeapons | listener:OnMapStart",
+        "CustomWeapons | listener:OnServerPrecacheResources",
+        "CustomWeapons | listener:OnMapEnd",
+        "CustomWeapons | listener:OnClientDisconnect",
+        "CustomWeapons | listener:OnClientAuthorized",
+        "CustomWeapons | listener:OnEntityDeleted",
+        "CustomWeapons | listener:OnEntitySpawned"
+      ],
+      "handlers": {
+        "CustomWeapons | listener:OnEntitySpawned": {
+          "calls": 600,
+          "total_ms": 3.865063000000376,
+          "mean_us": 6.441771666667293,
+          "p50_us": 5.407499999819265,
+          "p95_us": 11.591200001794276,
+          "p99_us": 14.222549999694818,
+          "max_us": 35.846000000674394
+        },
+        "CustomWeapons | listener:OnEntityDeleted": {
+          "calls": 600,
+          "total_ms": 2.0004570000236015,
+          "mean_us": 3.3340950000393357,
+          "p50_us": 2.4189999999180145,
+          "p95_us": 4.945049998423195,
+          "p99_us": 6.480199999859885,
+          "max_us": 242.13199999940116
+        }
+      },
+      "total_profiled_ms": 5.865520000023977
+    },
+    {
+      "name": "main-entities-2",
+      "label": "main",
+      "scenario": "entities",
+      "registered_labels": [
+        "CustomWeapons | event:player_connect_full",
+        "CustomWeapons | event:player_spawn",
+        "CustomWeapons | event:item_pickup",
+        "CustomWeapons | listener:OnMapStart",
+        "CustomWeapons | listener:OnServerPrecacheResources",
+        "CustomWeapons | listener:OnMapEnd",
+        "CustomWeapons | listener:OnClientDisconnect",
+        "CustomWeapons | listener:OnClientAuthorized",
+        "CustomWeapons | listener:OnEntityDeleted",
+        "CustomWeapons | listener:OnEntitySpawned"
+      ],
+      "handlers": {
+        "CustomWeapons | listener:OnEntitySpawned": {
+          "calls": 598,
+          "total_ms": 4.085690999986227,
+          "mean_us": 6.832259197301383,
+          "p50_us": 6.31599999996979,
+          "p95_us": 11.270649999323721,
+          "p99_us": 23.610809999590842,
+          "max_us": 46.99599999912607
+        },
+        "CustomWeapons | listener:OnEntityDeleted": {
+          "calls": 598,
+          "total_ms": 2.033098000001573,
+          "mean_us": 3.3998294314407573,
+          "p50_us": 2.658999999994194,
+          "p95_us": 5.579899998701875,
+          "p99_us": 9.601590000674998,
+          "max_us": 136.18499999984124
+        }
+      },
+      "total_profiled_ms": 6.1187889999878
+    },
+    {
+      "name": "fixed-idle-0",
+      "label": "fixed",
+      "scenario": "idle",
+      "registered_labels": [
+        "CustomWeapons | event:player_connect_full",
+        "CustomWeapons | event:player_spawn",
+        "CustomWeapons | event:item_pickup",
+        "CustomWeapons | listener:OnMapStart",
+        "CustomWeapons | listener:OnServerPrecacheResources",
+        "CustomWeapons | listener:OnMapEnd",
+        "CustomWeapons | listener:OnClientDisconnect",
+        "CustomWeapons | listener:OnClientAuthorized",
+        "CustomWeapons | listener:OnEntityDeleted"
+      ],
+      "handlers": {},
+      "total_profiled_ms": 0
+    },
+    {
+      "name": "fixed-idle-1",
+      "label": "fixed",
+      "scenario": "idle",
+      "registered_labels": [
+        "CustomWeapons | event:player_connect_full",
+        "CustomWeapons | event:player_spawn",
+        "CustomWeapons | event:item_pickup",
+        "CustomWeapons | listener:OnMapStart",
+        "CustomWeapons | listener:OnServerPrecacheResources",
+        "CustomWeapons | listener:OnMapEnd",
+        "CustomWeapons | listener:OnClientDisconnect",
+        "CustomWeapons | listener:OnClientAuthorized",
+        "CustomWeapons | listener:OnEntityDeleted"
+      ],
+      "handlers": {},
+      "total_profiled_ms": 0
+    },
+    {
+      "name": "fixed-idle-2",
+      "label": "fixed",
+      "scenario": "idle",
+      "registered_labels": [
+        "CustomWeapons | event:player_connect_full",
+        "CustomWeapons | event:player_spawn",
+        "CustomWeapons | event:item_pickup",
+        "CustomWeapons | listener:OnMapStart",
+        "CustomWeapons | listener:OnServerPrecacheResources",
+        "CustomWeapons | listener:OnMapEnd",
+        "CustomWeapons | listener:OnClientDisconnect",
+        "CustomWeapons | listener:OnClientAuthorized",
+        "CustomWeapons | listener:OnEntityDeleted"
+      ],
+      "handlers": {},
+      "total_profiled_ms": 0
+    },
+    {
+      "name": "fixed-entities-0",
+      "label": "fixed",
+      "scenario": "entities",
+      "registered_labels": [
+        "CustomWeapons | event:player_connect_full",
+        "CustomWeapons | event:player_spawn",
+        "CustomWeapons | event:item_pickup",
+        "CustomWeapons | listener:OnMapStart",
+        "CustomWeapons | listener:OnServerPrecacheResources",
+        "CustomWeapons | listener:OnMapEnd",
+        "CustomWeapons | listener:OnClientDisconnect",
+        "CustomWeapons | listener:OnClientAuthorized",
+        "CustomWeapons | listener:OnEntityDeleted"
+      ],
+      "handlers": {
+        "CustomWeapons | listener:OnEntityDeleted": {
+          "calls": 600,
+          "total_ms": 2.096531000024541,
+          "mean_us": 3.494218333374235,
+          "p50_us": 3.0299999998533167,
+          "p95_us": 5.848050000258807,
+          "p99_us": 8.16333000007944,
+          "max_us": 155.07200000138255
+        }
+      },
+      "total_profiled_ms": 2.096531000024541
+    },
+    {
+      "name": "fixed-entities-1",
+      "label": "fixed",
+      "scenario": "entities",
+      "registered_labels": [
+        "CustomWeapons | event:player_connect_full",
+        "CustomWeapons | event:player_spawn",
+        "CustomWeapons | event:item_pickup",
+        "CustomWeapons | listener:OnMapStart",
+        "CustomWeapons | listener:OnServerPrecacheResources",
+        "CustomWeapons | listener:OnMapEnd",
+        "CustomWeapons | listener:OnClientDisconnect",
+        "CustomWeapons | listener:OnClientAuthorized",
+        "CustomWeapons | listener:OnEntityDeleted"
+      ],
+      "handlers": {
+        "CustomWeapons | listener:OnEntityDeleted": {
+          "calls": 600,
+          "total_ms": 2.0254290000138226,
+          "mean_us": 3.3757150000230376,
+          "p50_us": 2.9524999997647683,
+          "p95_us": 5.590149997169647,
+          "p99_us": 8.677829999815003,
+          "max_us": 162.12799999993877
+        }
+      },
+      "total_profiled_ms": 2.0254290000138226
+    },
+    {
+      "name": "fixed-entities-2",
+      "label": "fixed",
+      "scenario": "entities",
+      "registered_labels": [
+        "CustomWeapons | event:player_connect_full",
+        "CustomWeapons | event:player_spawn",
+        "CustomWeapons | event:item_pickup",
+        "CustomWeapons | listener:OnMapStart",
+        "CustomWeapons | listener:OnServerPrecacheResources",
+        "CustomWeapons | listener:OnMapEnd",
+        "CustomWeapons | listener:OnClientDisconnect",
+        "CustomWeapons | listener:OnClientAuthorized",
+        "CustomWeapons | listener:OnEntityDeleted"
+      ],
+      "handlers": {
+        "CustomWeapons | listener:OnEntityDeleted": {
+          "calls": 600,
+          "total_ms": 2.085088999993289,
+          "mean_us": 3.475148333322148,
+          "p50_us": 2.7770000010605145,
+          "p95_us": 4.280199997492673,
+          "p99_us": 6.326469998457468,
+          "max_us": 227.37400000005437
+        }
+      },
+      "total_profiled_ms": 2.085088999993289
+    },
+    {
+      "name": "fixed-grenades-entities-0",
+      "label": "fixed-grenades",
+      "scenario": "entities",
+      "registered_labels": [
+        "CustomWeapons | event:player_connect_full",
+        "CustomWeapons | event:player_spawn",
+        "CustomWeapons | event:item_pickup",
+        "CustomWeapons | event:item_equip",
+        "CustomWeapons | listener:OnMapStart",
+        "CustomWeapons | listener:OnServerPrecacheResources",
+        "CustomWeapons | listener:OnMapEnd",
+        "CustomWeapons | listener:OnClientDisconnect",
+        "CustomWeapons | listener:OnClientAuthorized",
+        "CustomWeapons | listener:OnEntityDeleted",
+        "CustomWeapons | listener:OnEntitySpawned",
+        "CustomWeapons | listener:OnTick"
+      ],
+      "handlers": {
+        "CustomWeapons | listener:OnTick": {
+          "calls": 1919,
+          "total_ms": 3.1727900000608864,
+          "mean_us": 1.6533559145705505,
+          "p50_us": 1.6200000027311035,
+          "p95_us": 2.312300000539835,
+          "p99_us": 2.8461999990758997,
+          "max_us": 13.392999999950916
+        },
+        "CustomWeapons | listener:OnEntitySpawned": {
+          "calls": 598,
+          "total_ms": 4.442825000013727,
+          "mean_us": 7.4294732441701115,
+          "p50_us": 7.015999999566702,
+          "p95_us": 12.208750000354485,
+          "p99_us": 17.26474000151029,
+          "max_us": 32.28600000147708
+        },
+        "CustomWeapons | listener:OnEntityDeleted": {
+          "calls": 598,
+          "total_ms": 2.947990000010577,
+          "mean_us": 4.929749163897286,
+          "p50_us": 3.0869999991409713,
+          "p95_us": 5.396650000056978,
+          "p99_us": 8.224880000834638,
+          "max_us": 775.9109999997236
+        }
+      },
+      "total_profiled_ms": 10.56360500008519
+    },
+    {
+      "name": "fixed-grenades-entities-1",
+      "label": "fixed-grenades",
+      "scenario": "entities",
+      "registered_labels": [
+        "CustomWeapons | event:player_connect_full",
+        "CustomWeapons | event:player_spawn",
+        "CustomWeapons | event:item_pickup",
+        "CustomWeapons | event:item_equip",
+        "CustomWeapons | listener:OnMapStart",
+        "CustomWeapons | listener:OnServerPrecacheResources",
+        "CustomWeapons | listener:OnMapEnd",
+        "CustomWeapons | listener:OnClientDisconnect",
+        "CustomWeapons | listener:OnClientAuthorized",
+        "CustomWeapons | listener:OnEntityDeleted",
+        "CustomWeapons | listener:OnEntitySpawned",
+        "CustomWeapons | listener:OnTick"
+      ],
+      "handlers": {
+        "CustomWeapons | listener:OnTick": {
+          "calls": 1919,
+          "total_ms": 2.9617310000065267,
+          "mean_us": 1.543372068789227,
+          "p50_us": 1.5400000002046,
+          "p95_us": 2.1820000001753215,
+          "p99_us": 2.3849999997764826,
+          "max_us": 5.39799999751267
+        },
+        "CustomWeapons | listener:OnEntitySpawned": {
+          "calls": 598,
+          "total_ms": 3.904776000036975,
+          "mean_us": 6.529725752570192,
+          "p50_us": 5.543499999475898,
+          "p95_us": 10.537000000658733,
+          "p99_us": 13.679730000005742,
+          "max_us": 53.88600000014776
+        },
+        "CustomWeapons | listener:OnEntityDeleted": {
+          "calls": 598,
+          "total_ms": 1.7753780000157633,
+          "mean_us": 2.9688595317989352,
+          "p50_us": 2.470000001267181,
+          "p95_us": 4.043149998642544,
+          "p99_us": 6.225380000012125,
+          "max_us": 152.23900000273716
+        }
+      },
+      "total_profiled_ms": 8.641885000059265
+    }
+  ],
+  "aggregate": [
+    {
+      "label": "baseline",
+      "scenario": "idle",
+      "windows": 3,
+      "registered_labels": [
+        "CustomWeapons | event:player_connect_full",
+        "CustomWeapons | event:player_spawn",
+        "CustomWeapons | event:item_pickup",
+        "CustomWeapons | listener:OnMapStart",
+        "CustomWeapons | listener:OnServerPrecacheResources",
+        "CustomWeapons | listener:OnMapEnd",
+        "CustomWeapons | listener:OnClientDisconnect",
+        "CustomWeapons | listener:OnClientAuthorized",
+        "CustomWeapons | listener:OnEntityDeleted",
+        "CustomWeapons | listener:OnEntitySpawned",
+        "CustomWeapons | listener:OnTick"
+      ],
+      "handlers": {
+        "CustomWeapons | listener:OnTick": {
+          "calls": 5757,
+          "total_ms": 9.657859000150708,
+          "mean_us": 1.6775853743530846,
+          "p50_us": 1.66700000045239,
+          "p95_us": 2.2120000003269524,
+          "p99_us": 3.014760000005479,
+          "max_us": 47.60100000203238
+        }
+      },
+      "mean_profiled_ms_per_30s": 3.2192863333835695,
+      "total_profiled_ms": 9.657859000150708
+    },
+    {
+      "label": "baseline",
+      "scenario": "entities",
+      "windows": 3,
+      "registered_labels": [
+        "CustomWeapons | event:player_connect_full",
+        "CustomWeapons | event:player_spawn",
+        "CustomWeapons | event:item_pickup",
+        "CustomWeapons | listener:OnMapStart",
+        "CustomWeapons | listener:OnServerPrecacheResources",
+        "CustomWeapons | listener:OnMapEnd",
+        "CustomWeapons | listener:OnClientDisconnect",
+        "CustomWeapons | listener:OnClientAuthorized",
+        "CustomWeapons | listener:OnEntityDeleted",
+        "CustomWeapons | listener:OnEntitySpawned",
+        "CustomWeapons | listener:OnTick"
+      ],
+      "handlers": {
+        "CustomWeapons | listener:OnTick": {
+          "calls": 5757,
+          "total_ms": 9.262605000012343,
+          "mean_us": 1.6089291297572248,
+          "p50_us": 1.6169999998965068,
+          "p95_us": 2.26520000014716,
+          "p99_us": 2.987000000248372,
+          "max_us": 16.068999997514766
+        },
+        "CustomWeapons | listener:OnEntitySpawned": {
+          "calls": 1796,
+          "total_ms": 15.843895999999013,
+          "mean_us": 8.821768374164261,
+          "p50_us": 6.939999999303836,
+          "p95_us": 12.396749998515588,
+          "p99_us": 19.638500000860365,
+          "max_us": 1724.9640000009094
+        },
+        "CustomWeapons | listener:OnEntityDeleted": {
+          "calls": 1796,
+          "total_ms": 7.009914000034257,
+          "mean_us": 3.9030701559210788,
+          "p50_us": 2.9399999992421044,
+          "p95_us": 5.5077500010156655,
+          "p99_us": 9.346149999936415,
+          "max_us": 395.7249999984924
+        }
+      },
+      "mean_profiled_ms_per_30s": 10.705471666681872,
+      "total_profiled_ms": 32.11641500004561
+    },
+    {
+      "label": "main",
+      "scenario": "idle",
+      "windows": 3,
+      "registered_labels": [
+        "CustomWeapons | event:player_connect_full",
+        "CustomWeapons | event:player_spawn",
+        "CustomWeapons | event:item_pickup",
+        "CustomWeapons | listener:OnMapStart",
+        "CustomWeapons | listener:OnServerPrecacheResources",
+        "CustomWeapons | listener:OnMapEnd",
+        "CustomWeapons | listener:OnClientDisconnect",
+        "CustomWeapons | listener:OnClientAuthorized",
+        "CustomWeapons | listener:OnEntityDeleted",
+        "CustomWeapons | listener:OnEntitySpawned"
+      ],
+      "handlers": {},
+      "mean_profiled_ms_per_30s": 0,
+      "total_profiled_ms": 0
+    },
+    {
+      "label": "main",
+      "scenario": "entities",
+      "windows": 3,
+      "registered_labels": [
+        "CustomWeapons | event:player_connect_full",
+        "CustomWeapons | event:player_spawn",
+        "CustomWeapons | event:item_pickup",
+        "CustomWeapons | listener:OnMapStart",
+        "CustomWeapons | listener:OnServerPrecacheResources",
+        "CustomWeapons | listener:OnMapEnd",
+        "CustomWeapons | listener:OnClientDisconnect",
+        "CustomWeapons | listener:OnClientAuthorized",
+        "CustomWeapons | listener:OnEntityDeleted",
+        "CustomWeapons | listener:OnEntitySpawned"
+      ],
+      "handlers": {
+        "CustomWeapons | listener:OnEntitySpawned": {
+          "calls": 1798,
+          "total_ms": 12.171064999978697,
+          "mean_us": 6.769224137919187,
+          "p50_us": 5.947000000560365,
+          "p95_us": 11.535599998933314,
+          "p99_us": 17.579820002792975,
+          "max_us": 58.606999999938125
+        },
+        "CustomWeapons | listener:OnEntityDeleted": {
+          "calls": 1798,
+          "total_ms": 6.200999000074702,
+          "mean_us": 3.448831479463127,
+          "p50_us": 2.585000000635773,
+          "p95_us": 5.46900000199457,
+          "p99_us": 9.550170000729835,
+          "max_us": 242.13199999940116
+        }
+      },
+      "mean_profiled_ms_per_30s": 6.124021333351133,
+      "total_profiled_ms": 18.3720640000534
+    },
+    {
+      "label": "fixed",
+      "scenario": "idle",
+      "windows": 3,
+      "registered_labels": [
+        "CustomWeapons | event:player_connect_full",
+        "CustomWeapons | event:player_spawn",
+        "CustomWeapons | event:item_pickup",
+        "CustomWeapons | listener:OnMapStart",
+        "CustomWeapons | listener:OnServerPrecacheResources",
+        "CustomWeapons | listener:OnMapEnd",
+        "CustomWeapons | listener:OnClientDisconnect",
+        "CustomWeapons | listener:OnClientAuthorized",
+        "CustomWeapons | listener:OnEntityDeleted"
+      ],
+      "handlers": {},
+      "mean_profiled_ms_per_30s": 0,
+      "total_profiled_ms": 0
+    },
+    {
+      "label": "fixed",
+      "scenario": "entities",
+      "windows": 3,
+      "registered_labels": [
+        "CustomWeapons | event:player_connect_full",
+        "CustomWeapons | event:player_spawn",
+        "CustomWeapons | event:item_pickup",
+        "CustomWeapons | listener:OnMapStart",
+        "CustomWeapons | listener:OnServerPrecacheResources",
+        "CustomWeapons | listener:OnMapEnd",
+        "CustomWeapons | listener:OnClientDisconnect",
+        "CustomWeapons | listener:OnClientAuthorized",
+        "CustomWeapons | listener:OnEntityDeleted"
+      ],
+      "handlers": {
+        "CustomWeapons | listener:OnEntityDeleted": {
+          "calls": 1800,
+          "total_ms": 6.2070490000316525,
+          "mean_us": 3.44836055557314,
+          "p50_us": 2.960999999231717,
+          "p95_us": 5.443649998233012,
+          "p99_us": 7.841829998069439,
+          "max_us": 227.37400000005437
+        }
+      },
+      "mean_profiled_ms_per_30s": 2.069016333343884,
+      "total_profiled_ms": 6.2070490000316525
+    },
+    {
+      "label": "fixed-grenades",
+      "scenario": "entities",
+      "windows": 2,
+      "registered_labels": [
+        "CustomWeapons | event:player_connect_full",
+        "CustomWeapons | event:player_spawn",
+        "CustomWeapons | event:item_pickup",
+        "CustomWeapons | event:item_equip",
+        "CustomWeapons | listener:OnMapStart",
+        "CustomWeapons | listener:OnServerPrecacheResources",
+        "CustomWeapons | listener:OnMapEnd",
+        "CustomWeapons | listener:OnClientDisconnect",
+        "CustomWeapons | listener:OnClientAuthorized",
+        "CustomWeapons | listener:OnEntityDeleted",
+        "CustomWeapons | listener:OnEntitySpawned",
+        "CustomWeapons | listener:OnTick"
+      ],
+      "handlers": {
+        "CustomWeapons | listener:OnTick": {
+          "calls": 3838,
+          "total_ms": 6.134521000067413,
+          "mean_us": 1.5983639916798889,
+          "p50_us": 1.58350000037899,
+          "p95_us": 2.245149999725981,
+          "p99_us": 2.559779998446175,
+          "max_us": 13.392999999950916
+        },
+        "CustomWeapons | listener:OnEntitySpawned": {
+          "calls": 1196,
+          "total_ms": 8.347601000050702,
+          "mean_us": 6.979599498370152,
+          "p50_us": 6.593999999950029,
+          "p95_us": 11.63150000047608,
+          "p99_us": 15.42179999987631,
+          "max_us": 53.88600000014776
+        },
+        "CustomWeapons | listener:OnEntityDeleted": {
+          "calls": 1196,
+          "total_ms": 4.7233680000263405,
+          "mean_us": 3.9493043478481105,
+          "p50_us": 2.9624999997395207,
+          "p95_us": 5.008750000683904,
+          "p99_us": 7.244349999791659,
+          "max_us": 775.9109999997236
+        }
+      },
+      "mean_profiled_ms_per_30s": 9.602745000072227,
+      "total_profiled_ms": 19.205490000144454
+    }
+  ]
+}

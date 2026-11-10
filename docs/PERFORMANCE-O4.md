@@ -28,3 +28,7 @@ The #7 check does not exercise grenade models because that server has no configu
 
 Deploy only `CustomWeapons.dll` and `CustomWeapons.Core.dll`; preserve config, `data/selections.json`, and other plugin files. Use a cold instance restart because prior CounterStrikeSharp hot-load failures left native delegates. Keep a backup outside the plugin directory and restore both DLLs on a newly verified empty instance if startup or behavior regresses.
 
+## CSSProfiler follow-up
+
+The later [empty-server comparison on #17](PERFORMANCE-CSSPROFILER-20261110.md) measures pre-O4, current main and the `1.0.3-perf.1` follow-up with CSSProfiler. It supersedes the absence of paired timing evidence for these empty-server scenarios only; the client/load limitations above remain.
+

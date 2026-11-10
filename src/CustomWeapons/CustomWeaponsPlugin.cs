@@ -16,7 +16,7 @@ namespace CustomWeapons;
 public sealed class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig>
 {
     public override string ModuleName => "CustomWeapons";
-    public override string ModuleVersion => "1.0.2";
+    public override string ModuleVersion => "1.0.3-perf.1";
     public override string ModuleAuthor => "koiie111";
     public override string ModuleDescription => "Custom weapon models with MySQL access and local selections";
     public PluginConfig Config { get; set; } = new();
@@ -126,8 +126,13 @@ public sealed class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig
             return HookResult.Continue;
         });
         RegisterListener<Listeners.OnEntityDeleted>(entity => _applied.Remove(entity.EntityHandle.Raw));
-        RegisterListener<Listeners.OnEntitySpawned>(OnEntitySpawned);
-        if (_trackGrenades) RegisterListener<Listeners.OnTick>(ObserveHeldGrenades);
+        // Projectile tracking cannot apply a model without a configured grenade skin.
+        // Avoid entering managed code for every entity spawn in gun-only configurations.
+        if (_trackGrenades)
+        {
+            RegisterListener<Listeners.OnEntitySpawned>(OnEntitySpawned);
+            RegisterListener<Listeners.OnTick>(ObserveHeldGrenades);
+        }
         AddTimer(Config.RefreshIntervalSeconds, RequestRefresh, TimerFlags.REPEAT);
         // Covers weapons granted by other plugins and joins while an earlier DB read was pending.
         AddTimer(0.5f, () =>
