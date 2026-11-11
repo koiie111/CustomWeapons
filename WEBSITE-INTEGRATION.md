@@ -59,20 +59,36 @@ requires a fresh held weapon before SQL acknowledgement, with ammunition and
 kill-eater attribute bits preserved. Conflict rollback checks the held stock
 model and the same retained state. Runtime coverage now contains 155 checks.
 
-Local validation: Release build with zero warnings/errors; 58 xUnit tests with
-the actual MySQL test enabled (`python tests/run_website_mysql.py` creates and
-drops a disposable schema on the separate clean Docker instance); 144 managed
+Local validation of `1.0.5-skins3d.3`: 58 xUnit tests, zero skipped, with the
+actual MySQL test enabled (`python tests/run_website_mysql.py` creates and
+drops a disposable schema on the separate clean Docker instance); 155 managed
 runtime checks (`dotnet run --project tests/Runtime/Runtime.csproj -c Release`).
-Those results belong to `1.0.5-skins3d.1`. The `.2` preview/rollback change passes
-152 managed runtime checks, 57 xUnit tests (one database test skipped in this
-rerun), and a Release build without warnings/errors. Its native timings and
-SQL acknowledgement latency must be measured separately before acceptance.
+The Release build has zero warnings/errors. Native model/attribute acceptance
+applied all 19 models through the website API, SQL and normal `css_wp` dispatch
+for the real owner; all three custom AWPs retained kill-eater attribute 80 with
+raw counter bits 321. This is state verification, not client-frame acceptance.
+
+The matched server17 campaign `20261111-192115` completed all 12 windows with
+WeaponPaints `.9` and CustomWeapons `.3`. Four repeatable p95/p99 threshold
+flags remain in asynchronous WP/round-pet/SQL metrics. Separate read-only SQL
+diagnosis found a transport effect from Nagle on the test reverse SSH tunnel.
+It does not cancel those flags: a fresh complete baseline/candidate/repeat with
+the same TCP_NODELAY settings throughout is required. Native held replacement
+averaged about 32 ms in both versions; no distinguishable speedup is claimed.
+The original server configuration and 1112 file hashes were restored, and
+temporary diagnostic helpers removed. Raw profiles and limits are in the
+website's `docs/measurements/skins3d-20261111/server-v9-custom3/report.md`.
 
 The website uses actual compiled Workshop meshes/materials. Those current custom
 bodies have only UV0 and no confirmed native sticker projection layer. Their
-body sticker controls are disabled. Native keychain anchors are exported, but
-game/client parity and custom material effects still require acceptance. No
-Workshop addon is modified or published by this integration.
+body sticker controls are disabled. All 19 models have a named keychain bone
+attachment but no native KeychainMarkup or StickerMarkup. The owner rejected
+the Daedalos slab visual check: the slab is absent even though its networked
+attributes match. Exported bone anchors must not be treated as proof of native
+accessory rendering. An isolated SHA-pinned copy with experimental native
+markup is prepared offline in the website tools; it is not published, mounted
+or accepted. The original Workshop addon is unchanged. Keep the integration
+opt-in and all related PRs Draft pending visual/lifecycle/performance acceptance.
 
 Rollback: disable the website feature first, then restore plugin configuration,
 binary and JSON backup together. Retain the new table for diagnosis; disabling
