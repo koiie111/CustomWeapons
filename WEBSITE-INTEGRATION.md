@@ -86,8 +86,11 @@ attachment but no native KeychainMarkup or StickerMarkup. The owner rejected
 the Daedalos slab visual check: the slab is absent even though its networked
 attributes match. Exported bone anchors must not be treated as proof of native
 accessory rendering. An isolated SHA-pinned copy with experimental native
-markup is prepared offline in the website tools; it is not published, mounted
-or accepted. The original Workshop addon is unchanged. Keep the integration
+markup was prepared in the website tools. After explicit owner approval the
+exact pilot VPK was published as private Workshop item3838092382 and downloaded
+by the owner's client with matching SHA256. A separate visual-only server17
+pilot is staged; its native rendering is not accepted. The original Workshop
+addon is unchanged. Keep the integration
 opt-in and all related PRs Draft pending visual/lifecycle/performance acceptance.
 
 Rollback: disable the website feature first, then restore plugin configuration,
