@@ -7,10 +7,14 @@
   <PropertyGroup Condition="Exists('$(PluginSource)/HeldModelRefresh.cs')">
     <DefineConstants>$(DefineConstants);HELD_REFRESH</DefineConstants>
   </PropertyGroup>
+  <PropertyGroup Condition="Exists('$(PluginSource)/WebsiteIntegration.cs')">
+    <DefineConstants>$(DefineConstants);WEBSITE_SELECTIONS</DefineConstants>
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="$(CoreProject)" />
     <Compile Include="$(PluginSource)/CustomWeaponsPlugin.cs" Link="CustomWeaponsPlugin.cs" />
     <Compile Include="$(PluginSource)/PluginConfig.cs" Link="PluginConfig.cs" />
+    <Compile Include="$(PluginSource)/WebsiteIntegration.cs" Link="WebsiteIntegration.cs" Condition="Exists('$(PluginSource)/WebsiteIntegration.cs')" />
     <Compile Include="$(PluginSource)/HeldModelRefresh.cs" Link="HeldModelRefresh.cs" Condition="Exists('$(PluginSource)/HeldModelRefresh.cs')" />
     <Compile Include="$(PluginSource)/WeaponState.cs" Link="WeaponState.cs" Condition="Exists('$(PluginSource)/WeaponState.cs')" />
     <EmbeddedResource Include="$(PluginSource)/econ-attribute-names.json" LogicalName="CustomWeapons.econ-attribute-names.json" Condition="Exists('$(PluginSource)/econ-attribute-names.json')" />

@@ -44,7 +44,7 @@ internal static partial class Program
             return result.Task.WaitAsync(ct);
         }
     }
-    private static async Task<CustomWeaponsPlugin> Start(bool grenades = true)
+    private static async Task<CustomWeaponsPlugin> Start(bool grenades = true, bool website = false)
     {
         Entities.All.Clear(); Entities.Next = 100; Utilities.Players.Clear();
         Server.DrainWorld(); Server.DrainFrames();
@@ -57,7 +57,11 @@ internal static partial class Program
         if (grenades)
             foreach (var name in WeaponNames.Projectiles.Values.SelectMany(x => x).Distinct())
                 weapons[name] = new() { Skins = new() { [name] = new() { Private = false, Model = $"models/{name}.vmdl" } } };
-        plugin.OnConfigParsed(new() { SaveSelections = false, Weapons = weapons });
+        var config = new PluginConfig { SaveSelections = false, Weapons = weapons };
+#if WEBSITE_SELECTIONS
+        config.WebsiteSelectionsEnabled = website;
+#endif
+        plugin.OnConfigParsed(config);
         plugin.Load(false);
         Set(plugin, "_repository", new Repository());
         ((Listeners.OnServerPrecacheResources)plugin.ListenersByType[typeof(Listeners.OnServerPrecacheResources)])(new());
@@ -193,6 +197,9 @@ internal static partial class Program
         await MapRefreshTest();
 #if HELD_REFRESH
         await HeldRefreshTests();
+#endif
+#if WEBSITE_SELECTIONS
+        await WebsiteTests();
 #endif
         Console.WriteLine($"{_checks} runtime checks passed");
     }

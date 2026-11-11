@@ -8,6 +8,7 @@ public sealed class PluginConfig : BasePluginConfig
     public uint ServerId { get; set; } = 1;
     public double CooldownSeconds { get; set; } = 1;
     public bool SaveSelections { get; set; } = true;
+    public bool WebsiteSelectionsEnabled { get; set; }
     public float RefreshIntervalSeconds { get; set; } = 60;
     public DatabaseOptions Database { get; set; } = new();
     public Dictionary<string, WeaponDefinition> Weapons { get; set; } = Defaults();

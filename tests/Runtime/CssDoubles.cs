@@ -204,6 +204,7 @@ namespace CounterStrikeSharp.API.Core
     }
     public sealed class CCSPlayerController : CEntityInstance
     {
+        public byte TeamNum { get; set; } = 3;
         public int Slot { get; set; }
         public ulong SteamID { get; set; }
         public bool IsBot { get; set; }
@@ -278,6 +279,8 @@ namespace CounterStrikeSharp.API.Core
         public readonly Dictionary<Type, Delegate> ListenersByType = [];
         public readonly Dictionary<Type, Delegate> Events = [];
         public readonly List<(float Interval, Action Callback)> Timers = [];
+        public readonly Dictionary<string, Func<CCSPlayerController?, Modules.Commands.CommandInfo, HookResult>> Commands = [];
+        public void AddCommandListener(string name, Func<CCSPlayerController?, Modules.Commands.CommandInfo, HookResult> callback) => Commands.Add(name, callback);
         public void RegisterListener<T>(T callback) where T : Delegate => ListenersByType.Add(typeof(T), callback);
         public void RegisterEventHandler<T>(Func<T, EventInfo, HookResult> callback) => Events.Add(typeof(T), callback);
         public void AddCommand(string name, string description, Action<CCSPlayerController?, object> callback) { }
@@ -294,6 +297,14 @@ namespace CounterStrikeSharp.API.Core.Attributes
 }
 namespace CounterStrikeSharp.API.Modules.Timers { [Flags] public enum TimerFlags { REPEAT = 1 } }
 namespace CounterStrikeSharp.API.Modules.Utils { }
+namespace CounterStrikeSharp.API.Modules.Commands
+{
+    public sealed class CommandInfo(params string[] args)
+    {
+        public int ArgCount => args.Length;
+        public string GetArg(int index) => args[index];
+    }
+}
 namespace CounterStrikeSharp.API.Modules.Menu
 {
     public interface IMenuInstance { }

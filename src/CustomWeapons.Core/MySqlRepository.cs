@@ -6,17 +6,24 @@ public interface IAccessRepository
 {
     Task<DatabaseSnapshot> ReadAsync(IReadOnlyCollection<string> steamIds, CancellationToken cancellationToken);
 }
+public interface IWebsiteSelectionRepository
+{
+    Task<long?> SaveSelectionAsync(string steamId, int team, string weapon, string model, long expectedRevision, CancellationToken cancellationToken);
+    Task ImportSelectionsAsync(IReadOnlyCollection<WebsiteSelection> selections, CancellationToken cancellationToken);
+}
 
-public sealed class MySqlRepository : IAccessRepository
+public sealed partial class MySqlRepository : IAccessRepository, IWebsiteSelectionRepository
 {
     private readonly string _connectionString;
     private readonly uint _timeout;
+    private readonly bool _websiteSelections;
 
-    public MySqlRepository(DatabaseOptions options)
+    public MySqlRepository(DatabaseOptions options, bool websiteSelections = false)
     {
         if (!Enum.TryParse<MySqlSslMode>(options.SslMode, true, out var sslMode))
             throw new ArgumentException("Unknown Database.SslMode");
         _timeout = Math.Clamp(options.TimeoutSeconds, 1, 60);
+        _websiteSelections = websiteSelections;
         var secret = string.IsNullOrWhiteSpace(options.PasswordEnvironmentVariable)
             ? null : Environment.GetEnvironmentVariable(options.PasswordEnvironmentVariable);
         _connectionString = new MySqlConnectionStringBuilder
@@ -42,6 +49,7 @@ public sealed class MySqlRepository : IAccessRepository
                 catalog.Add(new(reader.GetString(0), reader.IsDBNull(1) ? null : reader.GetString(1), reader.GetInt32(2)));
 
         var access = new List<AccessRow>();
+        var selections = new List<WebsiteSelection>();
         if (steamIds.Count > 0)
         {
             await using var command = connection.CreateCommand();
@@ -56,7 +64,18 @@ public sealed class MySqlRepository : IAccessRepository
             while (await reader.ReadAsync(ct))
                 access.Add(new(reader.GetString(0), reader.GetString(1), reader.GetUInt32(2), reader.GetInt64(3)));
         }
-        return new(catalog, access);
+        if (_websiteSelections && steamIds.Count > 0)
+        {
+            await using var command = connection.CreateCommand();
+            var parameters = steamIds.Distinct(StringComparer.Ordinal).Select((id, index) =>
+            {
+                var name = "@steam" + index; command.Parameters.AddWithValue(name, id); return name;
+            }).ToArray();
+            command.CommandText = $"SELECT steamid64,weapon,model,revision,weapon_team FROM cw_site_selections WHERE steamid64 IN ({string.Join(',', parameters)})";
+            await using var reader = await command.ExecuteReaderAsync(ct);
+            while (await reader.ReadAsync(ct)) selections.Add(new(reader.GetString(0), reader.GetString(1), reader.GetString(2), reader.GetInt64(3), reader.GetInt32(4)));
+        }
+        return new(catalog, access, selections);
     }
 }
 

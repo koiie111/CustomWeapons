@@ -29,14 +29,16 @@ public sealed class DatabaseOptions
 public sealed record AccessRow(string SteamId, string Model, uint Sid, long Expires);
 public sealed record CatalogRow(string Model, string? Name, int Active);
 public sealed record CatalogEntry(string? Name, bool Active);
+public sealed record WebsiteSelection(string SteamId, string Weapon, string Model, long Revision, int Team = 0);
 
 public sealed class DatabaseSnapshot
 {
     public IReadOnlyDictionary<string, CatalogEntry> Catalog { get; }
     public IReadOnlyDictionary<string, AccessRow[]> Access { get; }
     public string[] Conflicts { get; }
+    public IReadOnlyDictionary<(string SteamId, int Team, string Weapon), WebsiteSelection> WebsiteSelections { get; }
 
-    public DatabaseSnapshot(IEnumerable<CatalogRow> catalog, IEnumerable<AccessRow> access)
+    public DatabaseSnapshot(IEnumerable<CatalogRow> catalog, IEnumerable<AccessRow> access, IEnumerable<WebsiteSelection>? selections = null)
     {
         var groups = catalog.GroupBy(x => x.Model, StringComparer.Ordinal).ToArray();
         Conflicts = groups.Where(g => g.Select(x => (x.Name, x.Active)).Distinct().Count() > 1)
@@ -46,6 +48,8 @@ public sealed class DatabaseSnapshot
             StringComparer.Ordinal);
         Access = access.GroupBy(x => x.SteamId, StringComparer.Ordinal)
             .ToDictionary(g => g.Key, g => g.ToArray(), StringComparer.Ordinal);
+        WebsiteSelections = (selections ?? []).Where(row => row.Team is 0 or 2 or 3).GroupBy(row => (row.SteamId, row.Team, row.Weapon))
+            .ToDictionary(group => group.Key, group => group.OrderByDescending(row => row.Revision).First());
     }
 }
 
