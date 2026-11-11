@@ -89,9 +89,20 @@ accessory rendering. An isolated SHA-pinned copy with experimental native
 markup was prepared in the website tools. After explicit owner approval the
 exact pilot VPK was published as private Workshop item3838092382 and downloaded
 by the owner's client with matching SHA256. A separate visual-only server17
-pilot is staged; its native rendering is not accepted. The original Workshop
-addon is unchanged. Keep the integration
+pilot subsequently showed the slab/nested sticker and an ordinary charm outside
+Daedalos. Custom movement remained fixed despite matching attributes; a stock-AK
+control moved. That pilot was restored with1112 runtime and23 tracked original
+hashes matching. Revision3 of the same private item adds distinct ordinary mesh
+patches and defaults, but has not been tested in the client or installed on a
+server. The original Workshop addon is unchanged. Keep the integration
 opt-in and all related PRs Draft pending visual/lifecycle/performance acceptance.
+
+The website now pins capability version2 with `keychain-bone` coordinates for
+custom positions/bounds. Deploy its API, renderer and regenerated capabilities
+together with the feature disabled during deployment; both sides reject a
+mixed coordinate contract. Database float fields and plugin serialization stay
+unchanged. See the website's `native-frame-editor` and `custom-placement`
+measurement directories for local tests and the explicit native limitation.
 
 Rollback: disable the website feature first, then restore plugin configuration,
 binary and JSON backup together. Retain the new table for diagnosis; disabling
