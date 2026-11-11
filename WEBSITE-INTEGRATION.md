@@ -42,11 +42,23 @@ commit overrides an older in-flight snapshot until a newer SQL revision arrives.
 Changed models use the existing held-model replacement path, retaining ammo and
 economy attributes. Team changes invalidate the inventory application cache.
 
+In `1.0.5-skins3d.2`, an already-authorized menu choice is shown immediately for
+its side while the same revision-checked SQL write runs. The chat status says
+it is saving; a committed override and "saved" confirmation appear only after
+SQL succeeds. A conflict or write error clears the temporary choice, reapplies
+the confirmed preference and requests a fresh snapshot. A pending CT choice
+cannot change T, repeated clicks cannot enqueue another same-weapon write, and
+the existing map/session/SteamID guards still gate delayed acknowledgements.
+The website continues to save only through its explicit Apply action.
+
 Local validation: Release build with zero warnings/errors; 58 xUnit tests with
 the actual MySQL test enabled (`python tests/run_website_mysql.py` creates and
 drops a disposable schema on the separate clean Docker instance); 144 managed
 runtime checks (`dotnet run --project tests/Runtime/Runtime.csproj -c Release`).
-These are not a native CS2 or CSSProfiler acceptance result for this candidate.
+Those results belong to `1.0.5-skins3d.1`. The `.2` preview/rollback change passes
+152 managed runtime checks, 57 xUnit tests (one database test skipped in this
+rerun), and a Release build without warnings/errors. Its native timings and
+SQL acknowledgement latency must be measured separately before acceptance.
 
 The website uses actual compiled Workshop meshes/materials. Those current custom
 bodies have only UV0 and no confirmed native sticker projection layer. Their

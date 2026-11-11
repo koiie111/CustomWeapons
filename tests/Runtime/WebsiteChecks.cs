@@ -43,7 +43,14 @@ internal static partial class Program
         var repo=new WebsiteRepository{Snapshot=snapshot};Set(plugin,"_repository",repo);
         Call(plugin,"Select",player,"weapon_ak47","gun");await Until(()=>repo.Writes.Count==1);
         repo.Requests.TryPeek(out var request);Check(request.Team==3&&request.Revision==2&&request.Model=="gun","Menu write uses current side and exact SQL revision");
-        Check((string?)Call(plugin,"Selected",session,"weapon_ak47")=="","Pending SQL write leaves applied preference unchanged");
+        Check((string?)Call(plugin,"Selected",session,"weapon_ak47")=="gun","Pending SQL write immediately previews the validated model");
+        Server.DrainFrames();Check(CurrentAk(player).Model=="models/gun.vmdl","Native model settles before the SQL write is acknowledged");
+        Check(((IDictionary)session.GetType().GetField("WebsiteOverrides")!.GetValue(session)!).Count==0,"Preview is not a committed SQL override");
+        Call(plugin,"Select",player,"weapon_ak47",null);Check(repo.Writes.Count==1,"Repeated selection cannot queue a second write while saving");
+        access.Succeed(new([],[],[new(id,"weapon_ak47","",2,3),new(id,"weapon_ak47","",6,2)]));
+        player.TeamNum=2;Call(plugin,"EnsureSession",player);
+        Check((string?)Call(plugin,"Selected",session,"weapon_ak47")=="","Pending CT model cannot replace the explicit T stock choice");
+        player.TeamNum=3;Call(plugin,"EnsureSession",player);access.Succeed(snapshot);
         repo.Writes.TryDequeue(out var saved);saved!.SetResult(3);
         await Until(()=>((IDictionary)session.GetType().GetField("WebsiteOverrides")!.GetValue(session)!).Count==1);
         Check((string?)Call(plugin,"Selected",session,"weapon_ak47")=="gun","Newly committed menu choice survives older in-flight snapshot");
@@ -52,6 +59,12 @@ internal static partial class Program
         Call(plugin,"Select",player,"weapon_ak47","gun");await Until(()=>repo.Writes.Count==1);repo.Writes.TryDequeue(out var conflict);conflict!.SetResult(null);
         await Until(()=>((HashSet<string>)session.GetType().GetField("WebsiteWrites")!.GetValue(session)!).Count==0);
         Check(((IDictionary)session.GetType().GetField("WebsiteOverrides")!.GetValue(session)!).Count==0,"Conflicted menu write does not publish an override");
+        Check((string?)Call(plugin,"Selected",session,"weapon_ak47")=="","Conflicted write reverts the temporary model to confirmed stock");
+        Check(((IDictionary)session.GetType().GetField("WebsitePending")!.GetValue(session)!).Count==0,"Conflict clears the temporary preview");
+        Call(plugin,"Select",player,"weapon_ak47","gun");await Until(()=>repo.Writes.Count==1);repo.Writes.TryDequeue(out var failed);failed!.SetException(new IOException("fixture write failure"));
+        await Until(()=>((HashSet<string>)session.GetType().GetField("WebsiteWrites")!.GetValue(session)!).Count==0);
+        Check((string?)Call(plugin,"Selected",session,"weapon_ak47")=="","Failed SQL write rolls back its temporary model");
+        Check(((IDictionary)session.GetType().GetField("WebsitePending")!.GetValue(session)!).Count==0,"Failed write releases temporary preference");
         player.TeamNum=0;Call(plugin,"Select",player,"weapon_ak47","gun");Check(repo.Writes.Count==0,"Spectator cannot change global legacy preference");
         player.TeamNum=3;Call(plugin,"Select",player,"weapon_ak47","gun");await Until(()=>repo.Writes.Count==1);repo.Writes.TryDequeue(out var stale);
         Disconnect(plugin,1);player.IsValid=false;Utilities.Players.Remove(player);var replacement=Player(1);replacement.SteamID++;

@@ -23,6 +23,10 @@ public sealed partial class CustomWeaponsPlugin
     private WebsiteSelection? WebsitePreference(Session session, int team, string weapon) =>
         ExactWebsitePreference(session, team, weapon) ?? (team != 0 ? ExactWebsitePreference(session, 0, weapon) : null);
 
+    private string? WebsiteModel(Session session, int team, string weapon) =>
+        session.WebsitePending.TryGetValue((team, weapon), out var pending) ? pending :
+        WebsitePreference(session, team, weapon)?.Model ?? _selections.Get(session.SteamId, weapon);
+
     private void RegisterWebsiteRefreshListeners()
     {
         void Refresh(CCSPlayerController? player)
@@ -65,6 +69,12 @@ public sealed partial class CustomWeaponsPlugin
         var generation = _mapGeneration; var model = id ?? ""; var slot = player.Slot;
         var menu = MenuManager.GetActiveMenu(player);
         session.NextChange = Now + Config.CooldownSeconds;
+        // Selection/access were validated by Select. Show the same-side choice
+        // immediately while the existing revision-checked transaction commits.
+        // It is not a saved override until SQL acknowledges it.
+        session.WebsitePending[(team, weapon)] = model;
+        ApplyWebsiteChanges(player, session);
+        Tell(player, "Сохранение выбора…");
         _ = Task.Run(async () =>
         {
             long? revision = null; Exception? failure = null;
@@ -75,6 +85,7 @@ public sealed partial class CustomWeaponsPlugin
             Server.NextWorldUpdate(() =>
             {
                 session.WebsiteWrites.Remove(weapon);
+                session.WebsitePending.Remove((team, weapon));
                 if (!_active || generation != _mapGeneration || _lifecycle?.MapReady != true ||
                     !_sessions.TryGetValue(slot, out var live) || !ReferenceEquals(live, session) ||
                     new CHandle<CCSPlayerController>(session.Controller).Value is not { IsValid: true } owner ||
@@ -82,6 +93,7 @@ public sealed partial class CustomWeaponsPlugin
                 if (failure != null || revision == null)
                 {
                     if (failure != null) Logger.LogWarning("Website selection write failed ({Type}).", failure.GetType().Name);
+                    ApplyWebsiteChanges(owner, session);
                     Tell(owner, failure != null ? "Не удалось сохранить выбор. Повторите позже." : "Выбор изменился на сайте. Откройте меню заново.");
                     RequestRefresh(); return;
                 }

@@ -16,7 +16,7 @@ namespace CustomWeapons;
 public sealed partial class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig>
 {
     public override string ModuleName => "CustomWeapons";
-    public override string ModuleVersion => "1.0.5-skins3d.1";
+    public override string ModuleVersion => "1.0.5-skins3d.2";
     public override string ModuleAuthor => "koiie111";
     public override string ModuleDescription => "Custom weapon models with MySQL access and local selections";
     public PluginConfig Config { get; set; } = new();
@@ -37,6 +37,7 @@ public sealed partial class CustomWeaponsPlugin : BasePlugin, IPluginConfig<Plug
         public double NextWebsiteRefresh;
         public readonly Dictionary<(int Team, string Weapon), WebsiteSelection> WebsiteOverrides = [];
         public readonly Dictionary<(int Team, string Weapon), string?> WebsiteEffective = [];
+        public readonly Dictionary<(int Team, string Weapon), string> WebsitePending = [];
         public readonly HashSet<string> WebsiteWrites = [];
     }
     private sealed record Applied(string OriginalModel, string Model);
@@ -314,7 +315,7 @@ public sealed partial class CustomWeaponsPlugin : BasePlugin, IPluginConfig<Plug
             session.Access.Ready, session.Access.Snapshot ?? _catalog);
 
     private string? Selected(Session session, string weapon) =>
-        SelectionRules.Resolve(Config.WebsiteSelectionsEnabled ? WebsitePreference(session, session.Team, weapon)?.Model ?? _selections.Get(session.SteamId, weapon) : _selections.Get(session.SteamId, weapon), Config.Weapons[weapon],
+        SelectionRules.Resolve(Config.WebsiteSelectionsEnabled ? WebsiteModel(session, session.Team, weapon) : _selections.Get(session.SteamId, weapon), Config.Weapons[weapon],
             (id, skin) => Allowed(session, id, skin) && _precached.Contains(skin.Model));
 
     private void OpenWeapons(CCSPlayerController? player)
