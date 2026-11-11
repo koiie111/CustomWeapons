@@ -47,15 +47,19 @@ public sealed partial class CustomWeaponsPlugin
     private void ApplyWebsiteChanges(CCSPlayerController player, Session session)
     {
         if (EnsureSession(player) is not { } current || !ReferenceEquals(session, current)) return;
-        var changed = false;
+        var active = player.PlayerPawn.Value?.WeaponServices?.ActiveWeapon.Value;
+        var heldCategory = active is { IsValid: true }
+            ? WeaponNames.Resolve(active.DesignerName, active.AttributeManager.Item.ItemDefinitionIndex, Config.Weapons.Keys) : null;
+        var heldChanged = false;
         foreach (var weapon in Config.Weapons.Keys)
         {
             var choice = Selected(session, weapon); var key = (session.Team, weapon);
             if (session.WebsiteEffective.TryGetValue(key, out var previous) && previous == choice) continue;
             session.WebsiteEffective[key] = choice;
-            ApplyInventory(player, weapon); changed = true;
+            ApplyInventory(player, weapon);
+            heldChanged |= weapon == heldCategory;
         }
-        if (changed) QueueHeldCheck(player, true);
+        if (heldChanged) QueueHeldCheck(player, true, changedCategory: heldCategory);
     }
 
     private void SelectWebsite(CCSPlayerController player, Session session, string weapon, string? id)

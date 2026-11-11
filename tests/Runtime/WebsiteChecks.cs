@@ -41,10 +41,16 @@ internal static partial class Program
         Check((string?)Call(plugin,"Selected",session,"weapon_ak47")=="gun","T falls back to legacy global preference");
         player.TeamNum=3;Call(plugin,"EnsureSession",player);
         var repo=new WebsiteRepository{Snapshot=snapshot};Set(plugin,"_repository",repo);
+        Call(plugin,"ApplyWebsiteChanges",player,session);Server.DrainFrames();
+        var beforePreview=CurrentAk(player);beforePreview.Clip1=4;
+        beforePreview.AttributeManager.Item.NetworkedDynamicAttributes.Attributes.Add(new(){AttributeDefinitionIndex=80,Value=BitConverter.Int32BitsToSingle(321)});
+        var beforePreviewRaw=beforePreview.EntityHandle.Raw;
         Call(plugin,"Select",player,"weapon_ak47","gun");await Until(()=>repo.Writes.Count==1);
         repo.Requests.TryPeek(out var request);Check(request.Team==3&&request.Revision==2&&request.Model=="gun","Menu write uses current side and exact SQL revision");
         Check((string?)Call(plugin,"Selected",session,"weapon_ak47")=="gun","Pending SQL write immediately previews the validated model");
         Server.DrainFrames();Check(CurrentAk(player).Model=="models/gun.vmdl","Native model settles before the SQL write is acknowledged");
+        Check(CurrentAk(player).EntityHandle.Raw!=beforePreviewRaw,"Website preview replaces the held instance before SQL acknowledgement");
+        Check(CurrentAk(player).Clip1==4&&BitConverter.SingleToInt32Bits(CustomWeapons.EconAttributeVector.Read(CurrentAk(player).AttributeManager.Item.NetworkedDynamicAttributes).Single(a=>a.AttributeDefinitionIndex==80).Value)==321,"Immediate preview retains ammo and native StatTrak bits");
         Check(((IDictionary)session.GetType().GetField("WebsiteOverrides")!.GetValue(session)!).Count==0,"Preview is not a committed SQL override");
         Call(plugin,"Select",player,"weapon_ak47",null);Check(repo.Writes.Count==1,"Repeated selection cannot queue a second write while saving");
         access.Succeed(new([],[],[new(id,"weapon_ak47","",2,3),new(id,"weapon_ak47","",6,2)]));
@@ -61,6 +67,7 @@ internal static partial class Program
         Check(((IDictionary)session.GetType().GetField("WebsiteOverrides")!.GetValue(session)!).Count==0,"Conflicted menu write does not publish an override");
         Check((string?)Call(plugin,"Selected",session,"weapon_ak47")=="","Conflicted write reverts the temporary model to confirmed stock");
         Check(((IDictionary)session.GetType().GetField("WebsitePending")!.GetValue(session)!).Count==0,"Conflict clears the temporary preview");
+        Server.DrainFrames();Check(CurrentAk(player).Model!="models/gun.vmdl"&&CurrentAk(player).Clip1==4&&BitConverter.SingleToInt32Bits(CustomWeapons.EconAttributeVector.Read(CurrentAk(player).AttributeManager.Item.NetworkedDynamicAttributes).Single(a=>a.AttributeDefinitionIndex==80).Value)==321,"Conflict restores held stock model without losing ammo or StatTrak");
         Call(plugin,"Select",player,"weapon_ak47","gun");await Until(()=>repo.Writes.Count==1);repo.Writes.TryDequeue(out var failed);failed!.SetException(new IOException("fixture write failure"));
         await Until(()=>((HashSet<string>)session.GetType().GetField("WebsiteWrites")!.GetValue(session)!).Count==0);
         Check((string?)Call(plugin,"Selected",session,"weapon_ak47")=="","Failed SQL write rolls back its temporary model");

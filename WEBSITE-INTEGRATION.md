@@ -51,6 +51,14 @@ cannot change T, repeated clicks cannot enqueue another same-weapon write, and
 the existing map/session/SteamID guards still gate delayed acknowledgements.
 The website continues to save only through its explicit Apply action.
 
+In `1.0.5-skins3d.3`, batched website changes resolve the active weapon category
+and pass that category to the held refresh. A forced check without a category
+was rejected by the existing safety guard, so a changed world model alone did
+not establish an updated view model. The regression test fails on `.2` and
+requires a fresh held weapon before SQL acknowledgement, with ammunition and
+kill-eater attribute bits preserved. Conflict rollback checks the held stock
+model and the same retained state. Runtime coverage now contains 155 checks.
+
 Local validation: Release build with zero warnings/errors; 58 xUnit tests with
 the actual MySQL test enabled (`python tests/run_website_mysql.py` creates and
 drops a disposable schema on the separate clean Docker instance); 144 managed

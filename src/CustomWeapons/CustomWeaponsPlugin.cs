@@ -16,7 +16,7 @@ namespace CustomWeapons;
 public sealed partial class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig>
 {
     public override string ModuleName => "CustomWeapons";
-    public override string ModuleVersion => "1.0.5-skins3d.2";
+    public override string ModuleVersion => "1.0.5-skins3d.3";
     public override string ModuleAuthor => "koiie111";
     public override string ModuleDescription => "Custom weapon models with MySQL access and local selections";
     public PluginConfig Config { get; set; } = new();
