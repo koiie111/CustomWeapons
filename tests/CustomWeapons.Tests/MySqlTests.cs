@@ -106,6 +106,11 @@ public sealed class MySqlTests
         foreach(var bad in new[]{"../bad","models/a.vmdl","' OR 1=1 --"})
             await Assert.ThrowsAsync<ArgumentException>(()=>website.SaveSelectionAsync(steam,3,"weapon_ak47",bad,3,CancellationToken.None));
         await Assert.ThrowsAsync<ArgumentException>(()=>website.SaveSelectionAsync(steam,1,"weapon_ak47","gun",0,CancellationToken.None));
+        await website.ImportSelectionsAsync([new("not-a-steamid", "weapon_ak47", "bad", 1),
+            new(steam, "weapon_awp", "AK-12", 1), new(steam, "weapon_ssg08", "../bad", 1)], CancellationToken.None);
+        var imported = await website.ReadAsync([steam], CancellationToken.None);
+        Assert.Equal("AK-12", imported.WebsiteSelections[(steam, 0, "weapon_awp")].Model);
+        Assert.False(imported.WebsiteSelections.ContainsKey((steam, 0, "weapon_ssg08")));
         using var cancelled=new CancellationTokenSource();cancelled.Cancel();
         await Assert.ThrowsAnyAsync<OperationCanceledException>(()=>website.SaveSelectionAsync(steam,3,"weapon_ak47","gun",3,cancelled.Token));
         var restricted = new MySqlConnectionStringBuilder(builder.ConnectionString){UserID=writerUser,Password="test-only-password"};

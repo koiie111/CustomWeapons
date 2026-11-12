@@ -7,8 +7,10 @@ namespace CounterStrikeSharp.API
     public static class NativeAPI
     {
         public static readonly Dictionary<nint,CEconItemAttribute> Attributes=[];
+        public static int VectorReads;
         public static nint GetNetworkVectorElementAt(nint vector,int index)
         {
+            VectorReads++;
             if(index!=0) throw new Exception("Only element zero is stride-independent");
             var list=CAttributeList.Registry[vector].Attributes;var pointer=vector*1048576;
             for(var n=0;n<list.Count;n++)Attributes[pointer+n*64]=list[n];

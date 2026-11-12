@@ -155,3 +155,12 @@ Release/MySQL/runtime checks pass (58 tests, 169 runtime checks); current-head
 native/performance acceptance remains pending. See
 [the review and explicit reproducers](docs/review/pr4-20261112/README.md).
 Keep the feature opt-in and PR Draft until those findings are resolved.
+
+## Follow-up skins3d.6
+
+The source fixes both review findings: applied-weapon reconciliation uses
+WeaponPaints ItemID/full-repaint semantics and a cheap unchanged-state guard;
+legacy import accepts AK-12 IDs and isolates invalid rows. 173 runtime checks
+and58 real MySQL tests pass. Native/CSSProfiler acceptance has not passed;
+keep opt-in/Draft pending a valid run. See
+[follow-up evidence and limits](docs/review/pr4-followup-20261112/README.md).

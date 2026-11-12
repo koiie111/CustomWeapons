@@ -10,7 +10,7 @@ public sealed partial class MySqlRepository
         if (!_websiteSelections) throw new InvalidOperationException("Website selections are disabled");
         if (team is not (0 or 2 or 3) || !ulong.TryParse(steamId, out var account) || account < 76561197960265728UL || steamId.Length != 17 ||
             !Regex.IsMatch(weapon, "^weapon_[a-z0-9_]{1,57}$", RegexOptions.CultureInvariant) ||
-            !Regex.IsMatch(model, "^[a-z0-9_]{0,64}$", RegexOptions.CultureInvariant))
+            !Regex.IsMatch(model, "^[A-Za-z0-9_-]{0,64}$", RegexOptions.CultureInvariant))
             throw new ArgumentException("Invalid website selection identity");
     }
 
@@ -43,12 +43,18 @@ public sealed partial class MySqlRepository
     {
         if (selections.Count == 0) return;
         if (selections.Count > 4096) throw new ArgumentException("Too many legacy selections");
-        foreach (var selection in selections) ValidateWebsiteSelection(selection.SteamId, selection.Team, selection.Weapon, selection.Model);
+        var valid = new List<WebsiteSelection>();
+        foreach (var selection in selections)
+        {
+            try { ValidateWebsiteSelection(selection.SteamId, selection.Team, selection.Weapon, selection.Model); valid.Add(selection); }
+            catch (ArgumentException) { /* Preserve invalid legacy JSON; do not poison other accounts. */ }
+        }
+        if (valid.Count == 0) return;
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeout.CancelAfter(TimeSpan.FromSeconds(_timeout * 3)); var ct = timeout.Token;
         await using var connection = new MySqlConnection(_connectionString); await connection.OpenAsync(ct);
         await using var command = connection.CreateCommand();
-        var rows = selections.DistinctBy(row => (row.SteamId, row.Team, row.Weapon)).OrderBy(row => row.SteamId, StringComparer.Ordinal).ThenBy(row => row.Team).ThenBy(row => row.Weapon, StringComparer.Ordinal).ToArray();
+        var rows = valid.DistinctBy(row => (row.SteamId, row.Team, row.Weapon)).OrderBy(row => row.SteamId, StringComparer.Ordinal).ThenBy(row => row.Team).ThenBy(row => row.Weapon, StringComparer.Ordinal).ToArray();
         var values = new List<string>();
         for (var i = 0; i < rows.Length; i++)
         {

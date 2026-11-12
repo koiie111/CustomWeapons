@@ -13,7 +13,6 @@ internal static partial class Program
         public DatabaseSnapshot Snapshot = Empty;
         public int Reads, Imports;
         public bool ImportFailure;
-        public bool ValidateImports;
         public readonly ConcurrentQueue<TaskCompletionSource<long?>> Writes = new();
         public readonly ConcurrentQueue<(string Steam, int Team, string Weapon, string Model, long Revision)> Requests = new();
         public Task<DatabaseSnapshot> ReadAsync(IReadOnlyCollection<string> ids, CancellationToken ct) { Reads++; return Task.FromResult(Snapshot); }
@@ -21,10 +20,6 @@ internal static partial class Program
         {
             Imports++;
             if(ImportFailure) throw new IOException("fixture import failure");
-            // Real repository validation runs before connecting; port1 also
-            // prevents touching an actual schema if its contract changes.
-            if (ValidateImports) return new MySqlRepository(new() { Host = "127.0.0.1", Port = 1,
-                Username = "review_invalid", PasswordEnvironmentVariable = "", TimeoutSeconds = 1 }, true).ImportSelectionsAsync(selections, ct);
             return Task.CompletedTask;
         }
         public Task<long?> SaveSelectionAsync(string steam, int team, string weapon, string model, long revision, CancellationToken ct)
@@ -35,6 +30,7 @@ internal static partial class Program
     }
     private static async Task WebsiteTests()
     {
+        await WebsiteRepaintDiagnostic();
         await WebsiteTeamIsolationTests();
         await WebsiteDecorationTests();
         var disabled=await Start(false);Check(disabled.Commands.Count==0,"Website flag off adds no refresh hooks");disabled.Unload(false);
@@ -159,6 +155,7 @@ internal static partial class Program
         Check(!WeaponStateValues(custom.AttributeManager.Item.AttributeList).Any(a => a.AttributeDefinitionIndex == 299), "Initial decoration suppression succeeds");
         // WeaponPaints GiveOnItemPickup repaints existing guns on a customized
         // knife pickup. Emulate its completed write, then the normal CW event.
+        custom.AttributeManager.Item.ItemID++;
         custom.AttributeManager.Item.AttributeList.Attributes.Add(new() { AttributeDefinitionIndex = 299, Value = BitConverter.Int32BitsToSingle(12) });
         plugin.Fire(new EventItemPickup { Userid = player, Defindex = 42 }); Server.DrainFrames();
         session.GetType().GetProperty("NextSweep")!.SetValue(session, 0d); Safety(plugin)(); Server.DrainFrames();
@@ -167,26 +164,20 @@ internal static partial class Program
         access.Succeed(new([], [], [new(id, "weapon_ak47", "", 2, 3)]));
         Call(plugin, "ApplyWebsiteChanges", player, session); Server.DrainFrames();
         var afterStock = WeaponStateValues(CurrentAk(player).AttributeManager.Item.AttributeList).SingleOrDefault(a => a.AttributeDefinitionIndex == 299);
+        Check(afterCallbacks == null && afterStock != null && BitConverter.SingleToInt32Bits(afterStock.Value) == 12, "Repaint suppression and latest stock decoration");
         Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(new {
             customAfterPickupCharm = afterCallbacks == null ? 0 : BitConverter.SingleToInt32Bits(afterCallbacks.Value), expectedCustomCharm = 0,
             stockAfterRevertCharm = afterStock == null ? 0 : BitConverter.SingleToInt32Bits(afterStock.Value), expectedStockCharm = 12
         }));
-        plugin.Unload(false);
-    }
-
-    private static async Task WebsiteLegacyDiagnostic()
-    {
-        var plugin = await Start(false, true);
-        var (player, _, _) = Armed(1);
-        var session = Call(plugin, "EnsureSession", player)!;
-        // This ID is accepted by both the old and current config validator.
-        plugin.Config.Weapons["weapon_ak47"].Skins["AK-12"] = plugin.Config.Weapons["weapon_ak47"].Skins["gun"];
-        SkinRules.ValidateWeapons(plugin.Config.Weapons);
-        ((SelectionStore)Get(plugin, "_selections")!).Set(player.SteamID.ToString(), "weapon_ak47", "AK-12");
-        var repo = new WebsiteRepository { Snapshot = Empty, ValidateImports = true }; Set(plugin, "_repository", repo);
-        Call(plugin, "RequestRefresh"); await Until(() => !(bool)Get(plugin, "_refreshRunning")!);
-        var access = (AccessState)session.GetType().GetProperty("Access")!.GetValue(session)!;
-        Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(new { configAccepted = true, legacyId = "AK-12", imports = repo.Imports, accessReadyAfterSuccessfulRead = access.Ready }));
+        access.Succeed(new([], [], [new(id, "weapon_ak47", "gun", 3, 3)]));
+        Call(plugin, "ApplyWebsiteChanges", player, session); Server.DrainFrames();
+        var cleared = CurrentAk(player); cleared.AttributeManager.Item.ItemID++;
+        cleared.AttributeManager.Item.AttributeList.Attributes.RemoveAll();
+        cleared.AttributeManager.Item.NetworkedDynamicAttributes.Attributes.RemoveAll();
+        plugin.Fire(new EventItemPickup { Userid = player, Defindex = 42 }); Server.DrainFrames();
+        access.Succeed(new([], [], [new(id, "weapon_ak47", "", 4, 3)]));
+        Call(plugin, "ApplyWebsiteChanges", player, session); Server.DrainFrames();
+        Check(!WeaponStateValues(CurrentAk(player).AttributeManager.Item.AttributeList).Any(a => a.AttributeDefinitionIndex == 299), "A complete repaint with empty decorations cannot resurrect the saved charm");
         plugin.Unload(false);
     }
 
@@ -211,6 +202,9 @@ internal static partial class Program
             Check(values.Length == 1 && values[0].AttributeDefinitionIndex == 80 && BitConverter.SingleToInt32Bits(values[0].Value) == 321,
                 "Custom model hides both unsupported decoration lists while preserving live StatTrak bits");
         }
+        NativeAPI.VectorReads = 0;
+        for (var i = 0; i < 100; i++) Call(plugin, "ApplyInventory", player, "weapon_ak47");
+        Check(NativeAPI.VectorReads == 0, "Unchanged custom items skip native attribute vector reads even during forced reconciliation");
         // A normal give/paint path can add attributes before model application.
         // Reapplying the same model must suppress those without another clone.
         var grants = player.Grants;

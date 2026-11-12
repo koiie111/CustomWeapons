@@ -1,5 +1,8 @@
 # PR4 review, 2026-11-12
 
+Historical review of skins3d.5. Source findings are addressed by
+[skins3d.6 follow-up](../pr4-followup-20261112/README.md); native acceptance remains pending.
+
 Reviewed input: `108c0aca5c9d1f20061f6a04a64cf532ab1579d1` against
 main `7855c3eb507b611978fb1adcf305cc8f8c2b87b4`.
 Result: **keep Draft; do not merge yet**. Two correctness issues remain below.

@@ -1,5 +1,5 @@
 param(
-    [string]$Version = '1.0.5-skins3d.5',
+    [string]$Version = '1.0.5-skins3d.6',
     [string]$OutputDirectory = (Join-Path $PSScriptRoot '../artifacts')
 )
 $ErrorActionPreference = 'Stop'
