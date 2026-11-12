@@ -105,8 +105,9 @@ The separate revision4 candidate adds the missing custom body/magazine cloth
 collision fields while retaining original dynamic controls and unchanged
 mounting coordinates. Its native parser, geometry, rejection and byte-identical
 reproduction checks pass; the private owner download matches the final VPK.
-Native startup/contact/movement remain pending. A separate server17 maintenance
-reservation prevented staging; its guard made no remote changes. See the
+After the separate GameUtils maintenance, private server17 startup, exact model
+hash, loaded plugin versions and retained original addon were verified against
+a fresh snapshot. Native client contact/movement remain pending. See the
 website's `custom-placement/revision4-preparation` report. No new plugin binary
 or production custom-model capability was enabled by that preparation.
 
