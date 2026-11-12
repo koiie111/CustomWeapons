@@ -101,6 +101,15 @@ fresh same-day snapshot with1112 runtime and23 original hashes matching. The
 original Workshop addon is unchanged. Keep the integration
 opt-in and all related PRs Draft pending visual/lifecycle/performance acceptance.
 
+The separate revision4 candidate adds the missing custom body/magazine cloth
+collision fields while retaining original dynamic controls and unchanged
+mounting coordinates. Its native parser, geometry, rejection and byte-identical
+reproduction checks pass; the private owner download matches the final VPK.
+Native startup/contact/movement remain pending. A separate server17 maintenance
+reservation prevented staging; its guard made no remote changes. See the
+website's `custom-placement/revision4-preparation` report. No new plugin binary
+or production custom-model capability was enabled by that preparation.
+
 The website now pins capability version2 with `keychain-bone` coordinates for
 custom positions/bounds. Deploy its API, renderer and regenerated capabilities
 together with the feature disabled during deployment; both sides reject a
