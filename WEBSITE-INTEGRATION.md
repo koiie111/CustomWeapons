@@ -93,8 +93,12 @@ pilot subsequently showed the slab/nested sticker and an ordinary charm outside
 Daedalos. Custom movement remained fixed despite matching attributes; a stock-AK
 control moved. That pilot was restored with1112 runtime and23 tracked original
 hashes matching. Revision3 of the same private item adds distinct ordinary mesh
-patches and defaults, but has not been tested in the client or installed on a
-server. The original Workshop addon is unchanged. Keep the integration
+patches and defaults. Its2026-11-12 real-client check showed ordinary charm
+displacement between the two diagnostic patches, but the moved slab intersects
+the model and was rejected. Native coordinates and IDs match; slab orientation
+and whole-body clearance remain unresolved. Server17 was restored against a
+fresh same-day snapshot with1112 runtime and23 original hashes matching. The
+original Workshop addon is unchanged. Keep the integration
 opt-in and all related PRs Draft pending visual/lifecycle/performance acceptance.
 
 The website now pins capability version2 with `keychain-bone` coordinates for
