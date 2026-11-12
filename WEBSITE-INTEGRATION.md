@@ -107,7 +107,8 @@ mounting coordinates. Its native parser, geometry, rejection and byte-identical
 reproduction checks pass; the private owner download matches the final VPK.
 After the separate GameUtils maintenance, private server17 startup, exact model
 hash, loaded plugin versions and retained original addon were verified against
-a fresh snapshot. Native client contact/movement remain pending. See the
+a fresh snapshot. A later owner check confirmed the slab outside at two points,
+but rejected overall placement parity and reported orb jitter. See the
 website's `custom-placement/revision4-preparation` report. No new plugin binary
 or production custom-model capability was enabled by that preparation.
 
