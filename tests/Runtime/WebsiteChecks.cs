@@ -13,11 +13,20 @@ internal static partial class Program
         public DatabaseSnapshot Snapshot = Empty;
         public int Reads, Imports;
         public bool ImportFailure;
+        public bool ValidateImports;
         public readonly ConcurrentQueue<TaskCompletionSource<long?>> Writes = new();
         public readonly ConcurrentQueue<(string Steam, int Team, string Weapon, string Model, long Revision)> Requests = new();
         public Task<DatabaseSnapshot> ReadAsync(IReadOnlyCollection<string> ids, CancellationToken ct) { Reads++; return Task.FromResult(Snapshot); }
         public Task ImportSelectionsAsync(IReadOnlyCollection<WebsiteSelection> selections, CancellationToken ct)
-        { Imports++; if(ImportFailure) throw new IOException("fixture import failure"); return Task.CompletedTask; }
+        {
+            Imports++;
+            if(ImportFailure) throw new IOException("fixture import failure");
+            // Real repository validation runs before connecting; port1 also
+            // prevents touching an actual schema if its contract changes.
+            if (ValidateImports) return new MySqlRepository(new() { Host = "127.0.0.1", Port = 1,
+                Username = "review_invalid", PasswordEnvironmentVariable = "", TimeoutSeconds = 1 }, true).ImportSelectionsAsync(selections, ct);
+            return Task.CompletedTask;
+        }
         public Task<long?> SaveSelectionAsync(string steam, int team, string weapon, string model, long revision, CancellationToken ct)
         {
             Requests.Enqueue((steam,team,weapon,model,revision));
@@ -26,6 +35,7 @@ internal static partial class Program
     }
     private static async Task WebsiteTests()
     {
+        await WebsiteTeamIsolationTests();
         await WebsiteDecorationTests();
         var disabled=await Start(false);Check(disabled.Commands.Count==0,"Website flag off adds no refresh hooks");disabled.Unload(false);
         var plugin=await Start(false,true);plugin.Config.CooldownSeconds=0;
@@ -90,6 +100,94 @@ internal static partial class Program
         Check(repo.Imports>0&&!replacementAccess.Ready,"Failed legacy import cannot publish a successful access snapshot");
         MapEnd(plugin);((Listeners.OnMapStart)plugin.ListenersByType[typeof(Listeners.OnMapStart)])("next");
         Check(plugin.Commands.Count==3,"Map change does not duplicate refresh command hooks");plugin.Unload(false);
+    }
+
+    private static async Task WebsiteTeamIsolationTests()
+    {
+        var plugin = await Start(false, true); plugin.Config.CooldownSeconds = 0;
+        var (player, _, _) = Armed(1);
+        var session = Call(plugin, "EnsureSession", player)!;
+        var access = (AccessState)session.GetType().GetProperty("Access")!.GetValue(session)!;
+        var id = player.SteamID.ToString();
+        var snapshot = new DatabaseSnapshot([], [], [new(id, "weapon_ak47", "", 1, 3)]);
+        var repo = new WebsiteRepository { Snapshot = snapshot }; Set(plugin, "_repository", repo);
+        access.Succeed(snapshot);
+        Call(plugin, "ApplyWebsiteChanges", player, session); Server.DrainFrames();
+        Call(plugin, "Select", player, "weapon_ak47", "gun");
+        await Until(() => repo.Writes.Count == 1); repo.Writes.TryDequeue(out var write); write!.SetResult(2);
+        await Until(() => ((HashSet<string>)session.GetType().GetField("WebsiteWrites")!.GetValue(session)!).Count == 0);
+        Server.DrainFrames();
+        Check(((SelectionStore)Get(plugin, "_selections")!).Get(id, "weapon_ak47") == null,
+            "A side-specific SQL choice must not create a global JSON fallback or team0 import");
+        player.TeamNum = 2; Call(plugin, "EnsureSession", player);
+        Check((string?)Call(plugin, "Selected", session, "weapon_ak47") == "gun", "Untouched side retains its automatic choice");
+        // Returning to a previously visited side exercises the effective-choice cache.
+        access.Succeed(new([], [], [new(id, "weapon_ak47", "gun", 2, 3), new(id, "weapon_ak47", "", 1, 2)]));
+        var before = CurrentAk(player); before.Clip1 = 9;
+        Call(plugin, "ApplyInventory", player, null); Server.DrainFrames();
+        Check(CurrentAk(player).EntityHandle.Raw != before.EntityHandle.Raw && CurrentAk(player).Model == "models/stock.vmdl" && CurrentAk(player).Clip1 == 9,
+            "Team change to stock refreshes the held instance and preserves ammo");
+        player.TeamNum = 3;
+        var stock = CurrentAk(player);
+        Call(plugin, "ApplyInventory", player, null); Server.DrainFrames();
+        Check(CurrentAk(player).EntityHandle.Raw != stock.EntityHandle.Raw && CurrentAk(player).Model == "models/gun.vmdl",
+            "Team change to custom refreshes the held instance even without a SQL choice change");
+        access.Succeed(new([], [], [new(id, "weapon_ak47", "", 3, 3), new(id, "weapon_ak47", "gun", 2, 2)]));
+        Call(plugin, "ApplyWebsiteChanges", player, session); Server.StepFrame();
+        Check(Pending(plugin) == 1, "A held replacement is retiring before the mid-refresh team switch");
+        player.TeamNum = 2; Call(plugin, "ApplyInventory", player, null); Server.DrainFrames();
+        Check(CurrentAk(player).Model == "models/gun.vmdl" && CurrentAk(player).Clip1 == 9,
+            "Mid-refresh team switch updates the retiring category instead of the fallback active item");
+        plugin.Unload(false);
+    }
+
+    // Explicit review diagnostic: shows the external painter boundary without
+    // making a known broken requirement part of the passing acceptance suite.
+    private static async Task WebsiteRepaintDiagnostic()
+    {
+        var plugin = await Start(false, true);
+        var (player, original, _) = Armed(1);
+        original.AttributeManager.Item.AttributeList.Attributes.Add(new() { AttributeDefinitionIndex = 299, Value = BitConverter.Int32BitsToSingle(37) });
+        var session = Call(plugin, "EnsureSession", player)!;
+        var access = (AccessState)session.GetType().GetProperty("Access")!.GetValue(session)!;
+        var id = player.SteamID.ToString();
+        var snapshot = new DatabaseSnapshot([], [], [new(id, "weapon_ak47", "gun", 1, 3)]);
+        access.Succeed(snapshot);
+        Set(plugin, "_repository", new WebsiteRepository { Snapshot = snapshot });
+        Call(plugin, "ApplyWebsiteChanges", player, session); Server.DrainFrames();
+        var custom = CurrentAk(player);
+        Check(!WeaponStateValues(custom.AttributeManager.Item.AttributeList).Any(a => a.AttributeDefinitionIndex == 299), "Initial decoration suppression succeeds");
+        // WeaponPaints GiveOnItemPickup repaints existing guns on a customized
+        // knife pickup. Emulate its completed write, then the normal CW event.
+        custom.AttributeManager.Item.AttributeList.Attributes.Add(new() { AttributeDefinitionIndex = 299, Value = BitConverter.Int32BitsToSingle(12) });
+        plugin.Fire(new EventItemPickup { Userid = player, Defindex = 42 }); Server.DrainFrames();
+        session.GetType().GetProperty("NextSweep")!.SetValue(session, 0d); Safety(plugin)(); Server.DrainFrames();
+        Call(plugin, "ApplyWebsiteChanges", player, session); Server.DrainFrames();
+        var afterCallbacks = WeaponStateValues(custom.AttributeManager.Item.AttributeList).SingleOrDefault(a => a.AttributeDefinitionIndex == 299);
+        access.Succeed(new([], [], [new(id, "weapon_ak47", "", 2, 3)]));
+        Call(plugin, "ApplyWebsiteChanges", player, session); Server.DrainFrames();
+        var afterStock = WeaponStateValues(CurrentAk(player).AttributeManager.Item.AttributeList).SingleOrDefault(a => a.AttributeDefinitionIndex == 299);
+        Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(new {
+            customAfterPickupCharm = afterCallbacks == null ? 0 : BitConverter.SingleToInt32Bits(afterCallbacks.Value), expectedCustomCharm = 0,
+            stockAfterRevertCharm = afterStock == null ? 0 : BitConverter.SingleToInt32Bits(afterStock.Value), expectedStockCharm = 12
+        }));
+        plugin.Unload(false);
+    }
+
+    private static async Task WebsiteLegacyDiagnostic()
+    {
+        var plugin = await Start(false, true);
+        var (player, _, _) = Armed(1);
+        var session = Call(plugin, "EnsureSession", player)!;
+        // This ID is accepted by both the old and current config validator.
+        plugin.Config.Weapons["weapon_ak47"].Skins["AK-12"] = plugin.Config.Weapons["weapon_ak47"].Skins["gun"];
+        SkinRules.ValidateWeapons(plugin.Config.Weapons);
+        ((SelectionStore)Get(plugin, "_selections")!).Set(player.SteamID.ToString(), "weapon_ak47", "AK-12");
+        var repo = new WebsiteRepository { Snapshot = Empty, ValidateImports = true }; Set(plugin, "_repository", repo);
+        Call(plugin, "RequestRefresh"); await Until(() => !(bool)Get(plugin, "_refreshRunning")!);
+        var access = (AccessState)session.GetType().GetProperty("Access")!.GetValue(session)!;
+        Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(new { configAccepted = true, legacyId = "AK-12", imports = repo.Imports, accessReadyAfterSuccessfulRead = access.Ready }));
+        plugin.Unload(false);
     }
 
     private static async Task WebsiteDecorationTests()

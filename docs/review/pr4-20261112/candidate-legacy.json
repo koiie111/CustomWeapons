@@ -1,0 +1,270 @@
+{
+  "synthetic": true,
+  "runtime": "10.0.11",
+  "rows": [
+    {
+      "active": 0,
+      "name": "tick",
+      "window": 0,
+      "iterations": 10000,
+      "ns_per_call": 556.36,
+      "bytes_per_call": 0.0128,
+      "player_scans": 0,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 0,
+      "name": "tick",
+      "window": 1,
+      "iterations": 10000,
+      "ns_per_call": 37.69,
+      "bytes_per_call": 0,
+      "player_scans": 0,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 0,
+      "name": "tick",
+      "window": 2,
+      "iterations": 10000,
+      "ns_per_call": 35.19,
+      "bytes_per_call": 0,
+      "player_scans": 0,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 0,
+      "name": "safety",
+      "window": 0,
+      "iterations": 10000,
+      "ns_per_call": 13437.81,
+      "bytes_per_call": 2016,
+      "player_scans": 10000,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 0,
+      "name": "safety",
+      "window": 1,
+      "iterations": 10000,
+      "ns_per_call": 13013.26,
+      "bytes_per_call": 2016,
+      "player_scans": 10000,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 0,
+      "name": "safety",
+      "window": 2,
+      "iterations": 10000,
+      "ns_per_call": 13379.62,
+      "bytes_per_call": 2016,
+      "player_scans": 10000,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 1,
+      "name": "tick",
+      "window": 0,
+      "iterations": 10000,
+      "ns_per_call": 410.71,
+      "bytes_per_call": 24,
+      "player_scans": 0,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 1,
+      "name": "tick",
+      "window": 1,
+      "iterations": 10000,
+      "ns_per_call": 425.79,
+      "bytes_per_call": 24,
+      "player_scans": 0,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 1,
+      "name": "tick",
+      "window": 2,
+      "iterations": 10000,
+      "ns_per_call": 417.31,
+      "bytes_per_call": 24,
+      "player_scans": 0,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 1,
+      "name": "safety",
+      "window": 0,
+      "iterations": 10000,
+      "ns_per_call": 16006.04,
+      "bytes_per_call": 2072,
+      "player_scans": 10000,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 1,
+      "name": "safety",
+      "window": 1,
+      "iterations": 10000,
+      "ns_per_call": 3258.82,
+      "bytes_per_call": 2031.6968,
+      "player_scans": 10000,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 1,
+      "name": "safety",
+      "window": 2,
+      "iterations": 10000,
+      "ns_per_call": 2352.04,
+      "bytes_per_call": 2016,
+      "player_scans": 10000,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 8,
+      "name": "tick",
+      "window": 0,
+      "iterations": 10000,
+      "ns_per_call": 792.3,
+      "bytes_per_call": 192,
+      "player_scans": 0,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 8,
+      "name": "tick",
+      "window": 1,
+      "iterations": 10000,
+      "ns_per_call": 753.74,
+      "bytes_per_call": 192,
+      "player_scans": 0,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 8,
+      "name": "tick",
+      "window": 2,
+      "iterations": 10000,
+      "ns_per_call": 743.3,
+      "bytes_per_call": 192,
+      "player_scans": 0,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 8,
+      "name": "safety",
+      "window": 0,
+      "iterations": 10000,
+      "ns_per_call": 2362.18,
+      "bytes_per_call": 2016,
+      "player_scans": 10000,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 8,
+      "name": "safety",
+      "window": 1,
+      "iterations": 10000,
+      "ns_per_call": 2354.7,
+      "bytes_per_call": 2016,
+      "player_scans": 10000,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 8,
+      "name": "safety",
+      "window": 2,
+      "iterations": 10000,
+      "ns_per_call": 2361.66,
+      "bytes_per_call": 2016,
+      "player_scans": 10000,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 32,
+      "name": "tick",
+      "window": 0,
+      "iterations": 10000,
+      "ns_per_call": 2961.06,
+      "bytes_per_call": 768,
+      "player_scans": 0,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 32,
+      "name": "tick",
+      "window": 1,
+      "iterations": 10000,
+      "ns_per_call": 2988.08,
+      "bytes_per_call": 768,
+      "player_scans": 0,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 32,
+      "name": "tick",
+      "window": 2,
+      "iterations": 10000,
+      "ns_per_call": 2944.86,
+      "bytes_per_call": 768,
+      "player_scans": 0,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 32,
+      "name": "safety",
+      "window": 0,
+      "iterations": 10000,
+      "ns_per_call": 2556.32,
+      "bytes_per_call": 2016,
+      "player_scans": 10000,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 32,
+      "name": "safety",
+      "window": 1,
+      "iterations": 10000,
+      "ns_per_call": 2536.86,
+      "bytes_per_call": 2016,
+      "player_scans": 10000,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 32,
+      "name": "safety",
+      "window": 2,
+      "iterations": 10000,
+      "ns_per_call": 2534.63,
+      "bytes_per_call": 2016,
+      "player_scans": 10000,
+      "definition_reads": 0,
+      "model_writes": 32
+    }
+  ]
+}

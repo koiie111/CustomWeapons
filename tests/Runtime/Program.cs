@@ -274,6 +274,10 @@ internal static partial class Program
     private static async Task Main(string[] args)
     {
         if (args is ["map-only"]) await MapRefreshTest();
+#if WEBSITE_SELECTIONS
+        else if (args is ["review-repaint"]) await WebsiteRepaintDiagnostic();
+        else if (args is ["review-legacy"]) await WebsiteLegacyDiagnostic();
+#endif
         else if (args is ["bench", var output]) await Benchmark(output);
         else await Tests();
     }

@@ -102,7 +102,9 @@ public sealed partial class CustomWeaponsPlugin
                     RequestRefresh(); return;
                 }
                 session.WebsiteOverrides[(team, weapon)] = new(session.SteamId, weapon, model, revision.Value, team);
-                _selections.Set(session.SteamId, weapon, model);
+                // SQL owns side-specific choices. Writing the legacy global
+                // fallback here would also change the other side and import it
+                // as team0 during the next refresh.
                 ApplyWebsiteChanges(owner, session);
                 Tell(owner, "Выбор сохранён.");
                 if (menu != null && ReferenceEquals(MenuManager.GetActiveMenu(owner), menu)) OpenSkins(owner, weapon);

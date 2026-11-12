@@ -145,3 +145,13 @@ Rollback: disable the website feature first, then restore plugin configuration,
 binary and JSON backup together. Retain the new table for diagnosis; disabling
 the plugin flag intentionally returns to legacy JSON behavior. Do not drop or
 truncate shared data as an automatic rollback step.
+
+## 2026-11-12 PR4 review follow-up
+
+Source `1.0.5-skins3d.5` fixes cross-side JSON fallback pollution and the missing
+held category on team changes, and packages the SQL/setup instructions. It does
+not resolve later external paint suppression or legacy ID import isolation.
+Release/MySQL/runtime checks pass (58 tests, 169 runtime checks); current-head
+native/performance acceptance remains pending. See
+[the review and explicit reproducers](docs/review/pr4-20261112/README.md).
+Keep the feature opt-in and PR Draft until those findings are resolved.

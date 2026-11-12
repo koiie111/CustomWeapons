@@ -16,7 +16,7 @@ namespace CustomWeapons;
 public sealed partial class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig>
 {
     public override string ModuleName => "CustomWeapons";
-    public override string ModuleVersion => "1.0.5-skins3d.4";
+    public override string ModuleVersion => "1.0.5-skins3d.5";
     public override string ModuleAuthor => "koiie111";
     public override string ModuleDescription => "Custom weapon models with MySQL access and local selections";
     public PluginConfig Config { get; set; } = new();
@@ -434,7 +434,15 @@ public sealed partial class CustomWeaponsPlugin : BasePlugin, IPluginConfig<Plug
                 if (ApplyModel(weapon, skin.Model)) QueueHeldCheck(player);
         }
         session.AppliedTeam = session.Team;
-        if (forceTeam) QueueHeldCheck(player, true);
+        if (forceTeam)
+        {
+            // Forced checks require the category whose choice changed, including
+            // a replacement already retiring when the player changes sides.
+            var active = pawn.WeaponServices?.ActiveWeapon.Value;
+            var category = session.HeldRefresh?.Category ?? (active is { IsValid: true }
+                ? WeaponNames.Resolve(active.DesignerName, active.AttributeManager.Item.ItemDefinitionIndex, Config.Weapons.Keys) : null);
+            if (category != null) QueueHeldCheck(player, true, changedCategory: category);
+        }
     }
 
     private bool ApplyModel(CBaseModelEntity entity, string model)

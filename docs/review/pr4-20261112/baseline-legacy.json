@@ -1,0 +1,270 @@
+{
+  "synthetic": true,
+  "runtime": "10.0.11",
+  "rows": [
+    {
+      "active": 0,
+      "name": "tick",
+      "window": 0,
+      "iterations": 10000,
+      "ns_per_call": 556.61,
+      "bytes_per_call": 0.0128,
+      "player_scans": 0,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 0,
+      "name": "tick",
+      "window": 1,
+      "iterations": 10000,
+      "ns_per_call": 38.04,
+      "bytes_per_call": 0,
+      "player_scans": 0,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 0,
+      "name": "tick",
+      "window": 2,
+      "iterations": 10000,
+      "ns_per_call": 35.52,
+      "bytes_per_call": 0,
+      "player_scans": 0,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 0,
+      "name": "safety",
+      "window": 0,
+      "iterations": 10000,
+      "ns_per_call": 13088.39,
+      "bytes_per_call": 2016,
+      "player_scans": 10000,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 0,
+      "name": "safety",
+      "window": 1,
+      "iterations": 10000,
+      "ns_per_call": 12597.8,
+      "bytes_per_call": 2016,
+      "player_scans": 10000,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 0,
+      "name": "safety",
+      "window": 2,
+      "iterations": 10000,
+      "ns_per_call": 14651.06,
+      "bytes_per_call": 2016,
+      "player_scans": 10000,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 1,
+      "name": "tick",
+      "window": 0,
+      "iterations": 10000,
+      "ns_per_call": 380.68,
+      "bytes_per_call": 24,
+      "player_scans": 0,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 1,
+      "name": "tick",
+      "window": 1,
+      "iterations": 10000,
+      "ns_per_call": 386.61,
+      "bytes_per_call": 24,
+      "player_scans": 0,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 1,
+      "name": "tick",
+      "window": 2,
+      "iterations": 10000,
+      "ns_per_call": 382.57,
+      "bytes_per_call": 24,
+      "player_scans": 0,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 1,
+      "name": "safety",
+      "window": 0,
+      "iterations": 10000,
+      "ns_per_call": 16024.52,
+      "bytes_per_call": 2072,
+      "player_scans": 10000,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 1,
+      "name": "safety",
+      "window": 1,
+      "iterations": 10000,
+      "ns_per_call": 6180.38,
+      "bytes_per_call": 2045.4672,
+      "player_scans": 10000,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 1,
+      "name": "safety",
+      "window": 2,
+      "iterations": 10000,
+      "ns_per_call": 2291.35,
+      "bytes_per_call": 2016,
+      "player_scans": 10000,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 8,
+      "name": "tick",
+      "window": 0,
+      "iterations": 10000,
+      "ns_per_call": 819.13,
+      "bytes_per_call": 192,
+      "player_scans": 0,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 8,
+      "name": "tick",
+      "window": 1,
+      "iterations": 10000,
+      "ns_per_call": 773.8,
+      "bytes_per_call": 192,
+      "player_scans": 0,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 8,
+      "name": "tick",
+      "window": 2,
+      "iterations": 10000,
+      "ns_per_call": 733.39,
+      "bytes_per_call": 192,
+      "player_scans": 0,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 8,
+      "name": "safety",
+      "window": 0,
+      "iterations": 10000,
+      "ns_per_call": 2355.81,
+      "bytes_per_call": 2016,
+      "player_scans": 10000,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 8,
+      "name": "safety",
+      "window": 1,
+      "iterations": 10000,
+      "ns_per_call": 2330.33,
+      "bytes_per_call": 2016,
+      "player_scans": 10000,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 8,
+      "name": "safety",
+      "window": 2,
+      "iterations": 10000,
+      "ns_per_call": 2351.51,
+      "bytes_per_call": 2016,
+      "player_scans": 10000,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 32,
+      "name": "tick",
+      "window": 0,
+      "iterations": 10000,
+      "ns_per_call": 2909.71,
+      "bytes_per_call": 768,
+      "player_scans": 0,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 32,
+      "name": "tick",
+      "window": 1,
+      "iterations": 10000,
+      "ns_per_call": 2962.04,
+      "bytes_per_call": 768,
+      "player_scans": 0,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 32,
+      "name": "tick",
+      "window": 2,
+      "iterations": 10000,
+      "ns_per_call": 2932.94,
+      "bytes_per_call": 768,
+      "player_scans": 0,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 32,
+      "name": "safety",
+      "window": 0,
+      "iterations": 10000,
+      "ns_per_call": 2554.15,
+      "bytes_per_call": 2016,
+      "player_scans": 10000,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 32,
+      "name": "safety",
+      "window": 1,
+      "iterations": 10000,
+      "ns_per_call": 2544.64,
+      "bytes_per_call": 2016,
+      "player_scans": 10000,
+      "definition_reads": 0,
+      "model_writes": 32
+    },
+    {
+      "active": 32,
+      "name": "safety",
+      "window": 2,
+      "iterations": 10000,
+      "ns_per_call": 2525.36,
+      "bytes_per_call": 2016,
+      "player_scans": 10000,
+      "definition_reads": 0,
+      "model_writes": 32
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 param(
-    [string]$Version = '1.0.4-rc.4',
+    [string]$Version = '1.0.5-skins3d.5',
     [string]$OutputDirectory = (Join-Path $PSScriptRoot '../artifacts')
 )
 $ErrorActionPreference = 'Stop'
@@ -22,12 +22,13 @@ Get-ChildItem -LiteralPath $publishRoot -File | Where-Object { $_.Extension -in 
     Copy-Item -Destination $pluginRoot
 if (Test-Path (Join-Path $pluginRoot 'CounterStrikeSharp.API.dll')) { throw 'Do not redistribute the server API in the plugin folder' }
 Copy-Item -LiteralPath (Join-Path $repoRoot 'configs/CustomWeapons.json') -Destination $configRoot
-foreach ($file in 'README.md', 'CHANGELOG.md', 'LICENSE', 'THIRD-PARTY-NOTICES.md') {
+foreach ($file in 'README.md', 'CHANGELOG.md', 'LICENSE', 'THIRD-PARTY-NOTICES.md', 'WEBSITE-INTEGRATION.md') {
     Copy-Item -LiteralPath (Join-Path $repoRoot $file) -Destination $stageRoot
 }
 Copy-Item -LiteralPath (Join-Path $repoRoot 'licenses') -Destination $stageRoot -Recurse
 Copy-Item -LiteralPath (Join-Path $repoRoot 'docs') -Destination $stageRoot -Recurse
 Copy-Item -LiteralPath (Join-Path $repoRoot 'configs') -Destination $stageRoot -Recurse
+Copy-Item -LiteralPath (Join-Path $repoRoot 'sql') -Destination $stageRoot -Recurse
 $archive = Join-Path $outputRoot "CustomWeapons-v$Version.zip"
 Compress-Archive -Path (Join-Path $stageRoot '*') -DestinationPath $archive -Force
 $zip = [IO.Compression.ZipFile]::OpenRead($archive)
@@ -39,6 +40,9 @@ try {
     $entry = $zip.GetEntry('addons/counterstrikesharp/configs/plugins/CustomWeapons/CustomWeapons.json')
     if ($null -eq $entry) { throw 'Missing configuration' }
     if ($null -eq $zip.GetEntry('addons/counterstrikesharp/gamedata/customweapons.json')) { throw 'Missing economy gamedata' }
+    foreach ($required in 'WEBSITE-INTEGRATION.md', 'sql/20261111_website_selections.sql') {
+        if ($null -eq $zip.GetEntry($required)) { throw "Missing website setup file: $required" }
+    }
     $reader = [IO.StreamReader]::new($entry.Open())
     try { $config = $reader.ReadToEnd() | ConvertFrom-Json } finally { $reader.Dispose() }
     if ($config.Database.Password -ne '') { throw 'Never package real credentials' }
