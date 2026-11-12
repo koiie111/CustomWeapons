@@ -9,7 +9,8 @@ namespace CustomWeapons;
 // Cold, per-replacement snapshots. No schema reads or native attribute calls in tick/safety.
 internal sealed class WeaponState
 {
-    private sealed record Attribute(ushort Index, float Value, float Initial, int Currency, bool Bonus);
+    internal sealed record Attribute(ushort Index, float Value, float Initial, int Currency, bool Bonus);
+    internal sealed record Decorations(Attribute[] Attributes, Attribute[] Dynamic);
     private static readonly Dictionary<ushort, string> AttributeNames = JsonSerializer.Deserialize<Dictionary<ushort, string>>(
         typeof(WeaponState).Assembly.GetManifestResourceStream("CustomWeapons.econ-attribute-names.json")!)!;
     private static MemoryFunctionVoid<nint, string, float>? _writeAttribute;
@@ -60,6 +61,34 @@ internal sealed class WeaponState
         if (result.Select(a => a.Index).Distinct().Count() != result.Length || result.Any(a => !AttributeNames.ContainsKey(a.Index)))
             throw new InvalidOperationException("Unknown or duplicate economy attribute");
         return result;
+    }
+
+    private static bool IsDecoration(Attribute value) => AttributeNames[value.Index].StartsWith("sticker slot ", StringComparison.Ordinal)
+        || AttributeNames[value.Index].StartsWith("keychain slot ", StringComparison.Ordinal);
+
+    internal static Decorations? SuppressDecorations(CBasePlayerWeapon weapon)
+    {
+        var item = weapon.AttributeManager.Item;
+        // Validate both complete lists before touching either one. Every other
+        // attribute (especially live kill-eater bits) stays byte-for-byte intact.
+        var attributes = Capture(item.AttributeList); var dynamic = Capture(item.NetworkedDynamicAttributes);
+        var saved = new Decorations(attributes.Where(IsDecoration).ToArray(), dynamic.Where(IsDecoration).ToArray());
+        if (saved.Attributes.Length + saved.Dynamic.Length == 0) return null;
+        _writeAttribute ??= new(GameData.GetSignature("CW_SetOrAddAttributeValueByName"));
+        Restore(item.AttributeList, attributes.Where(a => !IsDecoration(a)).ToArray());
+        Restore(item.NetworkedDynamicAttributes, dynamic.Where(a => !IsDecoration(a)).ToArray());
+        Utilities.SetStateChanged(weapon, nameof(CEconEntity), "m_AttributeManager");
+        return saved;
+    }
+
+    internal static void RestoreDecorations(CBasePlayerWeapon weapon, Decorations saved)
+    {
+        var item = weapon.AttributeManager.Item;
+        var attributes = Capture(item.AttributeList).Where(a => !IsDecoration(a)).Concat(saved.Attributes).ToArray();
+        var dynamic = Capture(item.NetworkedDynamicAttributes).Where(a => !IsDecoration(a)).Concat(saved.Dynamic).ToArray();
+        _writeAttribute ??= new(GameData.GetSignature("CW_SetOrAddAttributeValueByName"));
+        Restore(item.AttributeList, attributes); Restore(item.NetworkedDynamicAttributes, dynamic);
+        Utilities.SetStateChanged(weapon, nameof(CEconEntity), "m_AttributeManager");
     }
 
     public void Restore(CCSWeaponBase weapon, CPlayer_WeaponServices services)

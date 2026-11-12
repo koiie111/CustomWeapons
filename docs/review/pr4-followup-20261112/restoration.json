@@ -1,0 +1,17 @@
+{
+  "restored": true,
+  "originalChecks": [
+    true,
+    true,
+    true,
+    true,
+    true
+  ],
+  "diagnosticsRemoved": true,
+  "occupancyAfterPublicReopen": [
+    "3",
+    "0"
+  ],
+  "originalCustomWeapons": "1.0.2",
+  "profilerAcceptance": false
+}

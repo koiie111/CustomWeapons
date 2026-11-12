@@ -7,8 +7,10 @@ namespace CounterStrikeSharp.API
     public static class NativeAPI
     {
         public static readonly Dictionary<nint,CEconItemAttribute> Attributes=[];
+        public static int VectorReads;
         public static nint GetNetworkVectorElementAt(nint vector,int index)
         {
+            VectorReads++;
             if(index!=0) throw new Exception("Only element zero is stride-independent");
             var list=CAttributeList.Registry[vector].Attributes;var pointer=vector*1048576;
             for(var n=0;n<list.Count;n++)Attributes[pointer+n*64]=list[n];
@@ -204,6 +206,7 @@ namespace CounterStrikeSharp.API.Core
     }
     public sealed class CCSPlayerController : CEntityInstance
     {
+        public byte TeamNum { get; set; } = 3;
         public int Slot { get; set; }
         public ulong SteamID { get; set; }
         public bool IsBot { get; set; }
@@ -278,6 +281,8 @@ namespace CounterStrikeSharp.API.Core
         public readonly Dictionary<Type, Delegate> ListenersByType = [];
         public readonly Dictionary<Type, Delegate> Events = [];
         public readonly List<(float Interval, Action Callback)> Timers = [];
+        public readonly Dictionary<string, Func<CCSPlayerController?, Modules.Commands.CommandInfo, HookResult>> Commands = [];
+        public void AddCommandListener(string name, Func<CCSPlayerController?, Modules.Commands.CommandInfo, HookResult> callback) => Commands.Add(name, callback);
         public void RegisterListener<T>(T callback) where T : Delegate => ListenersByType.Add(typeof(T), callback);
         public void RegisterEventHandler<T>(Func<T, EventInfo, HookResult> callback) => Events.Add(typeof(T), callback);
         public void AddCommand(string name, string description, Action<CCSPlayerController?, object> callback) { }
@@ -294,6 +299,14 @@ namespace CounterStrikeSharp.API.Core.Attributes
 }
 namespace CounterStrikeSharp.API.Modules.Timers { [Flags] public enum TimerFlags { REPEAT = 1 } }
 namespace CounterStrikeSharp.API.Modules.Utils { }
+namespace CounterStrikeSharp.API.Modules.Commands
+{
+    public sealed class CommandInfo(params string[] args)
+    {
+        public int ArgCount => args.Length;
+        public string GetArg(int index) => args[index];
+    }
+}
 namespace CounterStrikeSharp.API.Modules.Menu
 {
     public interface IMenuInstance { }
