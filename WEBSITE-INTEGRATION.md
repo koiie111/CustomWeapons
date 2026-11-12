@@ -118,6 +118,28 @@ mixed coordinate contract. Database float fields and plugin serialization stay
 unchanged. See the website's `native-frame-editor` and `custom-placement`
 measurement directories for local tests and the explicit native limitation.
 
+## Current owner scope: selection-only custom models
+
+The owner stopped custom attachment/model calibration after revision4's limited
+slab success but reported charm mismatch, floating NextCS2 attachment and new
+Daedalos orb jitter. Server17 is restored:1112 runtime hashes/23 originals match,
+test directories removed, original addon list and open entry restored. No new
+pilot will be prepared. The original Workshop model files are unchanged.
+
+Version `1.0.5-skins3d.4`, when WebsiteSelectionsEnabled, temporarily suppresses
+sticker/keychain attributes on custom guns and retains them per full entity
+handle. Held replacements carry this state; stock reversion restores it without
+rolling back ammo or live StatTrak. Partial later decoration writes retain other
+saved decoration attributes. Map end/deletion clear the temporary cache. Legacy
+mode is unchanged. Website saves custom selections without rewriting the stock
+weapon row; unowned models support inspection and a server-quoted checkout, but
+installation is still denied independently by both site and plugin.
+
+Checks:163 managed runtime checks;58 xUnit tests with real disposable MySQL,
+zero skipped; release build0 warnings/errors. New .4 native client/profiling
+acceptance remains pending. Source remains Draft; the owner withdrew the
+instruction to deploy or push main as intended for another chat.
+
 Rollback: disable the website feature first, then restore plugin configuration,
 binary and JSON backup together. Retain the new table for diagnosis; disabling
 the plugin flag intentionally returns to legacy JSON behavior. Do not drop or

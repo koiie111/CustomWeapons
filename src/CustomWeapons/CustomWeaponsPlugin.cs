@@ -16,7 +16,7 @@ namespace CustomWeapons;
 public sealed partial class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig>
 {
     public override string ModuleName => "CustomWeapons";
-    public override string ModuleVersion => "1.0.5-skins3d.3";
+    public override string ModuleVersion => "1.0.5-skins3d.4";
     public override string ModuleAuthor => "koiie111";
     public override string ModuleDescription => "Custom weapon models with MySQL access and local selections";
     public PluginConfig Config { get; set; } = new();
@@ -44,6 +44,7 @@ public sealed partial class CustomWeaponsPlugin : BasePlugin, IPluginConfig<Plug
     private readonly Dictionary<int, Session> _sessions = new();
     private readonly HashSet<int> _grenadeHolders = [];
     private readonly Dictionary<uint, Applied> _applied = new();
+    private readonly Dictionary<uint, WeaponState.Decorations> _decorations = new();
     private readonly Dictionary<uint, IMenuInstance> _menus = new();
     private readonly HashSet<string> _precached = new(StringComparer.Ordinal);
     private readonly HashSet<string> _modelWarnings = new(StringComparer.Ordinal);
@@ -94,6 +95,7 @@ public sealed partial class CustomWeaponsPlugin : BasePlugin, IPluginConfig<Plug
             _lifecycle.MapEnded();
             _mapGeneration++;
             _applied.Clear();
+            _decorations.Clear();
             _precached.Clear();
             _modelWarnings.Clear();
             _grenades.Clear();
@@ -158,6 +160,7 @@ public sealed partial class CustomWeaponsPlugin : BasePlugin, IPluginConfig<Plug
         {
             var raw = entity.EntityHandle.Raw;
             _applied.Remove(raw);
+            _decorations.Remove(raw);
             // Retiring a weapon is expected: the replacement callback waits for
             // this complete handle to become invalid before granting the new one.
         });
@@ -438,13 +441,23 @@ public sealed partial class CustomWeaponsPlugin : BasePlugin, IPluginConfig<Plug
     {
         if (!_precached.Contains(model) || !entity.IsValid) return false;
         var raw = entity.EntityHandle.Raw;
-        if (_applied.TryGetValue(raw, out var old) && old.Model == model) return false;
+        _applied.TryGetValue(raw, out var old);
         var original = old?.OriginalModel ?? entity.CBodyComponent?.SceneNode?.GetSkeletonInstance()?.ModelState.ModelName;
         if (string.IsNullOrWhiteSpace(original))
         {
             if (_modelWarnings.Add(model)) Logger.LogWarning("Cannot capture original model for {Model}; application skipped.", model);
             return false;
         }
+        if (Config.WebsiteSelectionsEnabled && entity.DesignerName.StartsWith("weapon_", StringComparison.Ordinal))
+        {
+            try { HideCustomDecorations(entity.As<CBasePlayerWeapon>()); }
+            catch (Exception error)
+            {
+                if (_modelWarnings.Add(model)) Logger.LogWarning("Cannot safely hide unsupported custom decorations ({Type}); model skipped.", error.GetType().Name);
+                return false;
+            }
+        }
+        if (old?.Model == model) return false;
         entity.SetModel(model);
         _applied[raw] = new(original, model);
         return true;
@@ -454,8 +467,25 @@ public sealed partial class CustomWeaponsPlugin : BasePlugin, IPluginConfig<Plug
     {
         if (!_applied.TryGetValue(raw, out var applied)) return;
         var entity = new CHandle<CBaseModelEntity>(raw).Value;
-        if (entity is { IsValid: true }) entity.SetModel(applied.OriginalModel);
+        if (entity is { IsValid: true })
+        {
+            if (_decorations.Remove(raw, out var saved)) WeaponState.RestoreDecorations(entity.As<CBasePlayerWeapon>(), saved);
+            entity.SetModel(applied.OriginalModel);
+        }
+        else _decorations.Remove(raw);
         _applied.Remove(raw);
+    }
+
+    private void HideCustomDecorations(CBasePlayerWeapon weapon)
+    {
+        if (WeaponState.SuppressDecorations(weapon) is {} saved)
+        {
+            var raw = weapon.EntityHandle.Raw;
+            if (_decorations.TryGetValue(raw, out var before)) saved = new(
+                before.Attributes.Concat(saved.Attributes).GroupBy(a => a.Index).Select(g => g.Last()).ToArray(),
+                before.Dynamic.Concat(saved.Dynamic).GroupBy(a => a.Index).Select(g => g.Last()).ToArray());
+            _decorations[raw] = saved;
+        }
     }
 
     private void ObserveHeldGrenades()

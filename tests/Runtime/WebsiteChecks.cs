@@ -26,6 +26,7 @@ internal static partial class Program
     }
     private static async Task WebsiteTests()
     {
+        await WebsiteDecorationTests();
         var disabled=await Start(false);Check(disabled.Commands.Count==0,"Website flag off adds no refresh hooks");disabled.Unload(false);
         var plugin=await Start(false,true);plugin.Config.CooldownSeconds=0;
         Check(plugin.Commands.Keys.Order().SequenceEqual(new[]{"css_wp","say","say_team"}),"Website hooks registered once");
@@ -90,5 +91,50 @@ internal static partial class Program
         MapEnd(plugin);((Listeners.OnMapStart)plugin.ListenersByType[typeof(Listeners.OnMapStart)])("next");
         Check(plugin.Commands.Count==3,"Map change does not duplicate refresh command hooks");plugin.Unload(false);
     }
+
+    private static async Task WebsiteDecorationTests()
+    {
+        var plugin = await Start(false, true); plugin.Config.CooldownSeconds = 0;
+        var (player, original, _) = Armed(1);
+        original.Clip1 = 17;
+        foreach (var list in new[] { original.AttributeManager.Item.AttributeList, original.AttributeManager.Item.NetworkedDynamicAttributes })
+        {
+            list.Attributes.Add(new() { AttributeDefinitionIndex = 80, Value = BitConverter.Int32BitsToSingle(321) });
+            list.Attributes.Add(new() { AttributeDefinitionIndex = 113, Value = BitConverter.Int32BitsToSingle(1) });
+            list.Attributes.Add(new() { AttributeDefinitionIndex = 299, Value = BitConverter.Int32BitsToSingle(37), InitialValue = .3f, SetBonus = true });
+            list.Attributes.Add(new() { AttributeDefinitionIndex = 321, Value = BitConverter.Int32BitsToSingle(1) });
+        }
+        Safety(plugin)(); Server.DrainFrames();
+        var custom = CurrentAk(player);
+        Check(custom.Model == "models/gun.vmdl" && custom.Clip1 == 17, "Selection-only custom model still replaces held gun and retains ammo");
+        foreach (var list in new[] { custom.AttributeManager.Item.AttributeList, custom.AttributeManager.Item.NetworkedDynamicAttributes })
+        {
+            var values = WeaponStateValues(list);
+            Check(values.Length == 1 && values[0].AttributeDefinitionIndex == 80 && BitConverter.SingleToInt32Bits(values[0].Value) == 321,
+                "Custom model hides both unsupported decoration lists while preserving live StatTrak bits");
+        }
+        // A normal give/paint path can add attributes before model application.
+        // Reapplying the same model must suppress those without another clone.
+        var grants = player.Grants;
+        custom.AttributeManager.Item.AttributeList.Attributes.Add(new() { AttributeDefinitionIndex = 299, Value = BitConverter.Int32BitsToSingle(12) });
+        Call(plugin, "ApplyInventory", player, "weapon_ak47"); Server.DrainFrames();
+        Check(player.Grants == grants && !WeaponStateValues(custom.AttributeManager.Item.AttributeList).Any(a => a.AttributeDefinitionIndex == 299),
+            "Repeated custom application hides newly painted accessories without replacing the same held model");
+        var session = Call(plugin, "EnsureSession", player)!;
+        var access = (AccessState)session.GetType().GetProperty("Access")!.GetValue(session)!;
+        access.Succeed(new([], [], [new(player.SteamID.ToString(), "weapon_ak47", "", 2, 3)]));
+        Call(plugin, "ApplyWebsiteChanges", player, session); Server.DrainFrames();
+        var stock = CurrentAk(player);
+        Check(stock.Model == "models/stock.vmdl" && stock.Clip1 == 17, "Stock selection restores original model and ammo");
+        Check(WeaponStateValues(stock.AttributeManager.Item.AttributeList).Any(a => a.AttributeDefinitionIndex == 299 && BitConverter.SingleToInt32Bits(a.Value) == 12),
+            "Stock reversion restores the latest suppressed native charm");
+        Check(WeaponStateValues(stock.AttributeManager.Item.NetworkedDynamicAttributes).Any(a => a.AttributeDefinitionIndex == 80 && BitConverter.SingleToInt32Bits(a.Value) == 321),
+            "Custom-to-stock transition keeps native StatTrak");
+        Check(WeaponStateValues(stock.AttributeManager.Item.AttributeList).Any(a => a.AttributeDefinitionIndex == 113)
+            && WeaponStateValues(stock.AttributeManager.Item.NetworkedDynamicAttributes).Any(a => a.AttributeDefinitionIndex == 321),
+            "Partial later accessory writes do not discard previously suppressed stickers or the other attribute list");
+        plugin.Unload(false);
+    }
+    private static CEconItemAttribute[] WeaponStateValues(CAttributeList list) => CustomWeapons.EconAttributeVector.Read(list);
 }
 #endif

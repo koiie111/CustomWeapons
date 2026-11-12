@@ -29,6 +29,8 @@ public sealed partial class CustomWeaponsPlugin
         public uint FallbackActive, Last;
         public uint Replacement;
         public string? BornModel;
+        public bool BornCustom;
+        public WeaponState.Decorations? Decorations;
         public int Attempts;
     }
     private readonly Dictionary<uint, HeldRefresh> _heldRefreshes = [];
@@ -105,7 +107,8 @@ public sealed partial class CustomWeaponsPlugin
             {
                 var state = new WeaponState(weapon, services); // Validates economy attributes before removing anything.
                 var request = new HeldRefresh(session, check.Pawn, raw, check.Map, category, slot!.Value, state,
-                    applied?.OriginalModel ?? model, applied?.Model ?? model, applied != null) { Last = services.LastWeapon.Raw };
+                    applied?.OriginalModel ?? model, applied?.Model ?? model, applied != null) { Last = services.LastWeapon.Raw,
+                        Decorations = _decorations.GetValueOrDefault(raw) };
                 session.HeldRefresh = request; _heldRefreshes[raw] = request;
                 var items = owner.PlayerPawn.Value?.ItemServices?.As<CCSPlayer_ItemServices>();
                 if (items == null) { RemoveHeldRefresh(request); return; }
@@ -185,7 +188,8 @@ public sealed partial class CustomWeaponsPlugin
             var model = restoreOriginal ? request.Original : request.Model;
             replacement.SetModel(model);
             request.State.RestoreMesh(replacement);
-            request.Replacement = raw; request.BornModel = model;
+            request.Replacement = raw; request.BornModel = model; request.BornCustom = !restoreOriginal && request.Custom;
+            SetReplacementDecorations(request, replacement, request.BornCustom);
             if (!restoreOriginal && request.Custom) _applied[raw] = new(request.Original, model);
             RememberHeldModel(request.Session, request.Pawn, replacement, model);
             if (request.Last == request.Weapon) services.LastWeapon.Raw = raw;
@@ -214,6 +218,7 @@ public sealed partial class CustomWeaponsPlugin
         try
         {
             request.State.RestoreAppearance(weapon);
+            SetReplacementDecorations(request, weapon, request.BornCustom);
             weapon.SetModel(request.BornModel!);
             request.State.RestoreMesh(weapon);
             RememberHeldModel(request.Session, request.Pawn, weapon, request.BornModel);
@@ -223,9 +228,26 @@ public sealed partial class CustomWeaponsPlugin
         if (request.Model != request.BornModel)
         {
             weapon.SetModel(request.Model);
+            SetReplacementDecorations(request, weapon, request.Custom);
             if (request.Custom) _applied[request.Replacement] = new(request.Original, request.Model);
             else _applied.Remove(request.Replacement);
             QueueHeldCheck(player, true, changedCategory: request.Category);
+        }
+    }
+
+    private void SetReplacementDecorations(HeldRefresh request, CBasePlayerWeapon weapon, bool custom)
+    {
+        if (!Config.WebsiteSelectionsEnabled) return;
+        var raw = weapon.EntityHandle.Raw;
+        if (custom)
+        {
+            if (request.Decorations is {} saved) _decorations[raw] = saved;
+            HideCustomDecorations(weapon);
+        }
+        else
+        {
+            if (request.Decorations is {} saved) WeaponState.RestoreDecorations(weapon, saved);
+            _decorations.Remove(raw);
         }
     }
 
