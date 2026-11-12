@@ -469,7 +469,11 @@ public sealed partial class CustomWeaponsPlugin : BasePlugin, IPluginConfig<Plug
         var entity = new CHandle<CBaseModelEntity>(raw).Value;
         if (entity is { IsValid: true })
         {
-            if (_decorations.Remove(raw, out var saved)) WeaponState.RestoreDecorations(entity.As<CBasePlayerWeapon>(), saved);
+            if (_decorations.TryGetValue(raw, out var saved))
+            {
+                WeaponState.RestoreDecorations(entity.As<CBasePlayerWeapon>(), saved);
+                _decorations.Remove(raw);
+            }
             entity.SetModel(applied.OriginalModel);
         }
         else _decorations.Remove(raw);
