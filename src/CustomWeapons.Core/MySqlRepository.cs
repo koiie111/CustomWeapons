@@ -42,6 +42,22 @@ public sealed partial class MySqlRepository : IAccessRepository, IWebsiteSelecti
         var ct = timeout.Token;
         await using var connection = new MySqlConnection(_connectionString);
         await connection.OpenAsync(ct);
+        string? serverUuid = null, databaseName = null;
+        // Metadata must come from the same live connection as the snapshot.
+        // MariaDB and some proxies do not expose @@server_uuid: leave identity
+        // unavailable without disabling the existing CW functionality.
+        try
+        {
+            await using var identity = new MySqlCommand("SELECT @@server_uuid, DATABASE()", connection);
+            await using var reader = await identity.ExecuteReaderAsync(ct);
+            if (await reader.ReadAsync(ct) && !reader.IsDBNull(0) && !reader.IsDBNull(1))
+            {
+                var raw = reader.GetString(0);
+                if (Guid.TryParse(raw, out var uuid) && uuid != Guid.Empty)
+                { serverUuid = uuid.ToString("D"); databaseName = reader.GetString(1); }
+            }
+        }
+        catch (MySqlException) { /* Unknown or inaccessible server UUID: HUD interop fails closed. */ }
         var catalog = new List<CatalogRow>();
         await using (var command = new MySqlCommand("SELECT model, name, active FROM cw_skins WHERE model IS NOT NULL", connection))
         await using (var reader = await command.ExecuteReaderAsync(ct))
@@ -75,7 +91,7 @@ public sealed partial class MySqlRepository : IAccessRepository, IWebsiteSelecti
             await using var reader = await command.ExecuteReaderAsync(ct);
             while (await reader.ReadAsync(ct)) selections.Add(new(reader.GetString(0), reader.GetString(1), reader.GetString(2), reader.GetInt64(3), reader.GetInt32(4)));
         }
-        return new(catalog, access, selections);
+        return new(catalog, access, selections, serverUuid, databaseName);
     }
 }
 

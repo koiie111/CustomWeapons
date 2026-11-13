@@ -6,6 +6,7 @@
   <ItemGroup>
     <EmbeddedResource Include="econ-attribute-names.json" LogicalName="CustomWeapons.econ-attribute-names.json" />
     <ProjectReference Include="../CustomWeapons.Core/CustomWeapons.Core.csproj" />
+    <ProjectReference Include="../CustomWeapons.Hud.Api/CustomWeapons.Hud.Api.csproj" Private="false" />
     <PackageReference Include="CounterStrikeSharp.API" Version="1.0.375" ExcludeAssets="runtime" />
   </ItemGroup>
 </Project>

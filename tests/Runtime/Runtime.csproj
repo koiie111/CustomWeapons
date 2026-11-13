@@ -12,6 +12,8 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="$(CoreProject)" />
+    <ProjectReference Include="../../src/CustomWeapons.Hud.Api/CustomWeapons.Hud.Api.csproj" />
+    <Compile Include="$(PluginSource)/HudInterop.cs" Link="HudInterop.cs" />
     <Compile Include="$(PluginSource)/CustomWeaponsPlugin.cs" Link="CustomWeaponsPlugin.cs" />
     <Compile Include="$(PluginSource)/PluginConfig.cs" Link="PluginConfig.cs" />
     <Compile Include="$(PluginSource)/WebsiteIntegration.cs" Link="WebsiteIntegration.cs" Condition="Exists('$(PluginSource)/WebsiteIntegration.cs')" />

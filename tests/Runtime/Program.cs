@@ -11,7 +11,7 @@ internal static partial class Program
 {
     private const BindingFlags Private = BindingFlags.Instance | BindingFlags.NonPublic;
     private static int _checks;
-    private static readonly DatabaseSnapshot Empty = new([], []);
+    private static readonly DatabaseSnapshot Empty = new([], [], databaseServerUuid:"11111111-1111-1111-1111-111111111111", databaseName:"fixture");
     private static object? Get(object obj, string name) => obj.GetType().GetField(name, Private)!.GetValue(obj);
     private static void Set(object obj, string name, object value) => obj.GetType().GetField(name, Private)!.SetValue(obj, value);
     private static object? Call(object obj, string name, params object?[] args) => obj.GetType().GetMethod(name, Private)!.Invoke(obj, args);
@@ -200,6 +200,7 @@ internal static partial class Program
 #endif
 #if WEBSITE_SELECTIONS
         await WebsiteTests();
+        await HudBridgeTests();
 #endif
         Console.WriteLine($"{_checks} runtime checks passed");
     }

@@ -5,6 +5,8 @@ using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes;
 using CounterStrikeSharp.API.Modules.Menu;
+using CounterStrikeSharp.API.Core.Capabilities;
+using CustomWeapons.Hud.Api;
 using CounterStrikeSharp.API.Modules.Timers;
 using CounterStrikeSharp.API.Modules.Utils;
 using CustomWeapons.Core;
@@ -16,7 +18,7 @@ namespace CustomWeapons;
 public sealed partial class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig>
 {
     public override string ModuleName => "CustomWeapons";
-    public override string ModuleVersion => "1.0.5-skins3d.6";
+    public override string ModuleVersion => "1.0.5-skins3d.7-hud.1";
     public override string ModuleAuthor => "koiie111";
     public override string ModuleDescription => "Custom weapon models with MySQL access and local selections";
     public PluginConfig Config { get; set; } = new();
@@ -72,6 +74,7 @@ public sealed partial class CustomWeaponsPlugin : BasePlugin, IPluginConfig<Plug
         SkinRules.ValidateWeapons(config.Weapons);
         _trackGrenades = config.Weapons.Keys.Any(WeaponNames.IsProjectileWeapon);
         Config = config;
+        RebuildHudModels();
     }
 
     public override void Load(bool hotReload)
@@ -90,14 +93,18 @@ public sealed partial class CustomWeaponsPlugin : BasePlugin, IPluginConfig<Plug
                 manifest.AddResource(model);
                 _precached.Add(model);
             }
+            RebuildHudModels();
         });
         RegisterListener<Listeners.OnMapEnd>(() =>
         {
             _lifecycle.MapEnded();
             _mapGeneration++;
+            _hudDatabaseReady = false;
+            CancelHudWaiters();
             _applied.Clear();
             _decorations.Clear(); _decorationItems.Clear();
             _precached.Clear();
+            RebuildHudModels();
             _modelWarnings.Clear();
             _grenades.Clear();
             _grenadeHolders.Clear();
@@ -108,6 +115,9 @@ public sealed partial class CustomWeaponsPlugin : BasePlugin, IPluginConfig<Plug
         // Do not enumerate players or register game events in cold Load. If Load fails,
         // CSS 375 can retain pending native event hooks after freeing their delegates.
         _lifecycle.Load(hotReload, callback => Server.NextWorldUpdate(callback));
+        Capabilities.RegisterPluginCapability(new PluginCapability<IHudBridge>(HudBridgeRegistry.CapabilityName), HudBridgeRegistry.Provider);
+        _hudBridge = new HudBridge(this);
+        HudBridgeRegistry.Instance.SetCurrent(_hudBridge);
         if (hotReload) Logger.LogWarning("CustomWeapons loaded mid-map: change map to precache custom models before applying skins.");
         Logger.LogInformation("CustomWeapons {Version} loaded; waiting for map readiness.", ModuleVersion);
     }
@@ -255,6 +265,7 @@ public sealed partial class CustomWeaponsPlugin : BasePlugin, IPluginConfig<Plug
         if (!_active || _lifecycle?.MapReady != true) return;
         if (_refreshRunning) { _refreshAgain = true; return; }
         _refreshRunning = true;
+        var hudSequence = ++_hudSequence;
         var generation = _mapGeneration;
         var sessions = _sessions.ToArray();
         var ids = sessions.Select(x => x.Value.SteamId).Distinct().ToArray();
@@ -290,6 +301,7 @@ public sealed partial class CustomWeaponsPlugin : BasePlugin, IPluginConfig<Plug
                     RequestRefresh();
                     return;
                 }
+                _hudDatabaseReady = result is { DatabaseServerUuid.Length: > 0, DatabaseName.Length: > 0 };
                 if (result != null)
                 {
                     _catalog = result;
@@ -309,6 +321,7 @@ public sealed partial class CustomWeaponsPlugin : BasePlugin, IPluginConfig<Plug
                         else ApplyInventory(player);
                     }
                 }
+                CompleteHudRefresh(hudSequence, generation, result);
                 if (_refreshAgain) { _refreshAgain = false; RequestRefresh(); }
             });
         });
@@ -572,6 +585,8 @@ public sealed partial class CustomWeaponsPlugin : BasePlugin, IPluginConfig<Plug
     public override void Unload(bool hotReload)
     {
         _active = false;
+        if (_hudBridge != null) HudBridgeRegistry.Instance.ClearCurrent(_hudBridge);
+        CancelHudWaiters();
         var mapReady = _lifecycle?.MapReady == true;
         _lifecycle?.Stop();
         _stop.Cancel();

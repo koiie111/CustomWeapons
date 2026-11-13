@@ -60,6 +60,12 @@ public sealed class MySqlTests
             Username = readerUser, Password = "test-only-password", PasswordEnvironmentVariable = "", SslMode = "Disabled"
         });
         var snapshot = await repository.ReadAsync(["765", "' OR 1=1 --"], CancellationToken.None);
+        create.CommandText = "SELECT @@server_uuid, DATABASE()";
+        await using (var identity = await create.ExecuteReaderAsync()) {
+            Assert.True(await identity.ReadAsync());
+            Assert.Equal(Guid.Parse(identity.GetString(0)).ToString("D"), snapshot.DatabaseServerUuid);
+            Assert.Equal(identity.GetString(1), snapshot.DatabaseName);
+        }
         Assert.Equal("AWP - Перлика", snapshot.Catalog["awp_animes"].Name);
         Assert.Single(snapshot.Access);
         Assert.Equal(4294967295, Assert.Single(snapshot.Access["765"]).Expires);

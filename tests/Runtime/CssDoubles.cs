@@ -356,3 +356,8 @@ namespace CounterStrikeSharp.API.Modules.Memory
 {
     public static class Schema { public static int GetClassSize(string name) => name=="CEconItemAttribute"?64:throw new Exception("Unexpected schema"); }
 }
+namespace CounterStrikeSharp.API.Core.Capabilities
+{
+    public sealed class PluginCapability<T>(string name) { public string Name { get; } = name; }
+    public static class Capabilities { public static void RegisterPluginCapability<T>(PluginCapability<T> capability, Func<T> provider) { } }
+}
