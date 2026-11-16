@@ -5,6 +5,8 @@ namespace CustomWeapons.Hud.Api;
 // A single copy of this assembly must be loaded by CounterStrikeSharp's shared loader.
 public sealed record HudModel(string Weapon, string Id, string Name, string Resource, bool Private, bool Precached);
 public sealed record HudSnapshot(bool Loaded, bool MapReady, bool WebsiteEnabled, uint ServerId, bool DatabaseReady, string? DatabaseServerUuid, string? DatabaseName, ImmutableArray<HudModel> Models);
+public sealed record HudSelectionRequest(int Slot, ulong SteamId, uint Controller, int Team, string Weapon);
+public sealed record HudEffectiveSelection(bool Known, bool Supported, string? Model);
 public enum HudRefreshResult { Reconciled, Deferred, Error, Superseded }
 public sealed record HudRefreshRequest(int Slot, ulong SteamId, uint Controller, int Team, string Weapon, string ExpectedModel);
 
@@ -12,14 +14,15 @@ public sealed record HudRefreshRequest(int Slot, ulong SteamId, uint Controller,
 public interface IHudBridge
 {
     HudSnapshot GetSnapshot();
+    HudEffectiveSelection GetEffectiveSelection(HudSelectionRequest request);
     void RequestRefresh(HudRefreshRequest request, Action<HudRefreshResult> completed);
 }
 
 /// <summary>Stable shared provider. Retained capability registrations hold only this singleton, never plugin instances.</summary>
 public sealed class HudBridgeRegistry : IHudBridge
 {
-    public const string CapabilityName = "customweapons:hud:v1";
-    public const int ContractVersion = 1;
+    public const string CapabilityName = "customweapons:hud:v2";
+    public const int ContractVersion = 2;
     public static HudBridgeRegistry Instance { get; } = new();
     private IHudBridge? _current;
     private long _generation;
@@ -42,6 +45,14 @@ public sealed class HudBridgeRegistry : IHudBridge
         Interlocked.CompareExchange(ref _current, null, service);
     }
     public HudSnapshot GetSnapshot() => Volatile.Read(ref _current)?.GetSnapshot() ?? new(false,false,false,0,false,null,null,[]);
+    public HudEffectiveSelection GetEffectiveSelection(HudSelectionRequest request)
+    {
+        var service = Volatile.Read(ref _current);
+        var generation = Generation;
+        if (service == null) return new(false, false, null);
+        try { var result = service.GetEffectiveSelection(request); return ReferenceEquals(service, Volatile.Read(ref _current)) && generation == Generation ? result : new(false, false, null); }
+        catch { return new(false, false, null); }
+    }
     public void RequestRefresh(HudRefreshRequest request, Action<HudRefreshResult> completed)
     {
         var service = Volatile.Read(ref _current);
