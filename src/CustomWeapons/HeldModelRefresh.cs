@@ -16,7 +16,7 @@ public sealed partial class CustomWeaponsPlugin
         public string? ChangedCategory;
     }
     private sealed class HeldRefresh(Session session, uint pawn, uint weapon, int map,
-        string category, gear_slot_t slot, WeaponState state, string original, string model, bool custom)
+        string category, gear_slot_t slot, WeaponState state, string original, string model, bool custom, bool personal)
     {
         public readonly Session Session = session;
         public readonly uint Pawn = pawn, Weapon = weapon;
@@ -24,6 +24,7 @@ public sealed partial class CustomWeaponsPlugin
         public readonly string Category = category, Original = original;
         public readonly gear_slot_t Slot = slot;
         public readonly WeaponState State = state;
+        public readonly bool Personal = personal;
         public string Model = model;
         public bool Custom = custom, Retired;
         public uint FallbackActive, Last;
@@ -59,7 +60,7 @@ public sealed partial class CustomWeaponsPlugin
         {
             // Our own grant emits pickup/equip synchronously. Never reissue that grant.
             // A new menu choice while the old item is retiring supersedes its model.
-            if (force && changedCategory == running.Category)
+            if (running.Personal && force && changedCategory == running.Category)
             {
                 var choice = Selected(session, running.Category);
                 running.Custom = !string.IsNullOrEmpty(choice);
@@ -107,7 +108,8 @@ public sealed partial class CustomWeaponsPlugin
             {
                 var state = new WeaponState(weapon, services); // Validates economy attributes before removing anything.
                 var request = new HeldRefresh(session, check.Pawn, raw, check.Map, category, slot!.Value, state,
-                    applied?.OriginalModel ?? model, applied?.Model ?? model, applied != null) { Last = services.LastWeapon.Raw,
+                    applied?.OriginalModel ?? model, applied?.Model ?? model, applied != null,
+                    IsPersonalWeapon(owner, active, check.Pawn)) { Last = services.LastWeapon.Raw,
                         Decorations = _decorations.GetValueOrDefault(raw) };
                 session.HeldRefresh = request; _heldRefreshes[raw] = request;
                 var items = owner.PlayerPawn.Value?.ItemServices?.As<CCSPlayer_ItemServices>();
@@ -183,6 +185,7 @@ public sealed partial class CustomWeaponsPlugin
         }
         try
         {
+            if (!request.Personal) _issuedWeapons.Remove(replacement.EntityHandle.Raw);
             request.State.Restore(replacement, services);
             var raw = replacement.EntityHandle.Raw;
             var model = restoreOriginal ? request.Original : request.Model;

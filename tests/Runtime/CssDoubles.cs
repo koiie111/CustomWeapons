@@ -59,6 +59,8 @@ namespace CounterStrikeSharp.API
 }
 namespace CounterStrikeSharp.API.Core
 {
+    public enum HookMode { Pre, Post }
+
     public static class Entities
     {
         public static readonly Dictionary<uint, CEntityInstance> All = [];
@@ -82,6 +84,7 @@ namespace CounterStrikeSharp.API.Core
         }
         public string DesignerName { get; set; } = "";
         public CHandle<CEntityInstance> EntityHandle { get; set; }
+        public T As<T>() where T : CEntityInstance => (T)(object)this;
     }
     public class CBaseModelEntity : CEntityInstance
     {
@@ -89,7 +92,6 @@ namespace CounterStrikeSharp.API.Core
         public int Writes;
         public string Model = "models/stock.vmdl";
         public CHandle<CBaseModelEntity> OwnerEntity { get; set; } = new(0);
-        public T As<T>() where T : CEntityInstance => (T)(object)this;
         public void SetModel(string model)
         {
             Model = model; Writes++;
@@ -159,6 +161,7 @@ namespace CounterStrikeSharp.API.Core
     public sealed class CCSWeaponBaseVData { public gear_slot_t GearSlot { get; set; } public byte PrimaryAmmoType { get; set; } public byte SecondaryAmmoType { get; set; } = 1; }
     public class CCSWeaponBase : CBasePlayerWeapon
     {
+        public CHandle<Pawn> PrevOwner { get; set; } = new(0);
         public bool BurstMode { get; set; } public bool SilencerOn { get; set; }
         public int IRecoilIndex { get; set; } public float FlRecoilIndex { get; set; } public float AccuracyPenalty { get; set; }
         private readonly CCSWeaponBaseVData _data = new();
@@ -187,6 +190,7 @@ namespace CounterStrikeSharp.API.Core
     public sealed class CCSPlayer_ItemServices(Pawn pawn)
     {
         public bool BlockDrop;
+        public CHandle<Pawn> Pawn => new(pawn.EntityHandle.Raw);
         public T As<T>() => (T)(object)this;
         public void DropActivePlayerWeapon(CBasePlayerWeapon weapon)
         {
@@ -194,12 +198,14 @@ namespace CounterStrikeSharp.API.Core
             CounterStrikeSharp.API.Server.Work();
             var services=pawn.WeaponServices!;
             services.MyWeapons.RemoveAll(h=>h.Raw==weapon.EntityHandle.Raw);
+            weapon.As<CCSWeaponBase>().PrevOwner = new(pawn.EntityHandle.Raw);
             weapon.OwnerEntity=new(0);
             if(services.ActiveWeapon.Raw==weapon.EntityHandle.Raw) services.ActiveWeapon=new(services.MyWeapons.FirstOrDefault()?.Raw??0);
         }
     }
     public sealed class Pawn : CBaseModelEntity
     {
+        public CHandle<CCSPlayerController> Controller { get; set; } = new(0);
         public Pawn() { ItemServices=new(this); }
         public WeaponServices? WeaponServices { get; set; } = new();
         public CCSPlayer_ItemServices? ItemServices { get; set; }
@@ -226,6 +232,7 @@ namespace CounterStrikeSharp.API.Core
             var services=PlayerPawn.Value!.WeaponServices!;
             services.MyWeapons.Add(new(weapon.EntityHandle.Raw)); services.ActiveWeapon=new(weapon.EntityHandle.Raw);
             OnGrant?.Invoke(weapon);
+            CounterStrikeSharp.API.Modules.Memory.VirtualFunctions.GiveNamedItemFunc.Invoke(PlayerPawn.Value.ItemServices!, weapon);
             return (T)(CEntityInstance)weapon;
         }
         public bool ClientSwitchEnabled = true;
@@ -290,6 +297,32 @@ namespace CounterStrikeSharp.API.Core
         public virtual void Load(bool hotReload) { }
         public virtual void Unload(bool hotReload) { }
         public void Fire<T>(T ev) => ((Func<T, EventInfo, HookResult>)Events[typeof(T)])(ev, new());
+    }
+}
+
+namespace CounterStrikeSharp.API.Modules.Memory.DynamicFunctions
+{
+    public sealed class DynamicHook(CCSPlayer_ItemServices items, CBasePlayerWeapon weapon)
+    {
+        public T? GetParam<T>(int index) where T : class => index == 0 ? items as T : null;
+        public T? GetReturn<T>() where T : class => weapon as T;
+    }
+}
+
+namespace CounterStrikeSharp.API.Modules.Memory
+{
+    using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
+
+    public static class VirtualFunctions
+    {
+        public static readonly GrantHook GiveNamedItemFunc = new();
+        public sealed class GrantHook
+        {
+            private event Func<DynamicHook, HookResult>? Given;
+            public void Hook(Func<DynamicHook, HookResult> callback, HookMode _) => Given += callback;
+            public void Unhook(Func<DynamicHook, HookResult> callback, HookMode _) => Given -= callback;
+            public void Invoke(CCSPlayer_ItemServices items, CBasePlayerWeapon weapon) => Given?.Invoke(new(items, weapon));
+        }
     }
 }
 namespace CounterStrikeSharp.API.Core.Attributes

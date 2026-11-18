@@ -5,6 +5,8 @@ using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes;
 using CounterStrikeSharp.API.Modules.Menu;
+using CounterStrikeSharp.API.Modules.Memory;
+using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using CounterStrikeSharp.API.Core.Capabilities;
 using CustomWeapons.Hud.Api;
 using CounterStrikeSharp.API.Modules.Timers;
@@ -18,7 +20,7 @@ namespace CustomWeapons;
 public sealed partial class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig>
 {
     public override string ModuleName => "CustomWeapons";
-    public override string ModuleVersion => "1.0.5-skins3d.7-hud.1";
+    public override string ModuleVersion => "1.0.5-skins3d.7-hud.2";
     public override string ModuleAuthor => "koiie111";
     public override string ModuleDescription => "Custom weapon models with MySQL access and local selections";
     public PluginConfig Config { get; set; } = new();
@@ -46,6 +48,7 @@ public sealed partial class CustomWeaponsPlugin : BasePlugin, IPluginConfig<Plug
     private readonly Dictionary<int, Session> _sessions = new();
     private readonly HashSet<int> _grenadeHolders = [];
     private readonly Dictionary<uint, Applied> _applied = new();
+    private readonly Dictionary<uint, (ulong SteamId, uint Pawn)> _issuedWeapons = new();
     private readonly Dictionary<uint, WeaponState.Decorations> _decorations = new();
     private readonly Dictionary<uint, (ulong Item, int Attributes, int Dynamic)> _decorationItems = new();
     private readonly Dictionary<uint, IMenuInstance> _menus = new();
@@ -62,6 +65,7 @@ public sealed partial class CustomWeaponsPlugin : BasePlugin, IPluginConfig<Plug
     private bool _refreshAgain;
     private int _mapGeneration;
     private bool _trackGrenades;
+    private bool _weaponGrantHooked;
     private static double Now => Stopwatch.GetTimestamp() / (double)Stopwatch.Frequency;
 
     public void OnConfigParsed(PluginConfig config)
@@ -102,6 +106,7 @@ public sealed partial class CustomWeaponsPlugin : BasePlugin, IPluginConfig<Plug
             _hudDatabaseReady = false;
             CancelHudWaiters();
             _applied.Clear();
+            _issuedWeapons.Clear();
             _decorations.Clear(); _decorationItems.Clear();
             _precached.Clear();
             RebuildHudModels();
@@ -171,6 +176,7 @@ public sealed partial class CustomWeaponsPlugin : BasePlugin, IPluginConfig<Plug
         {
             var raw = entity.EntityHandle.Raw;
             _applied.Remove(raw);
+            _issuedWeapons.Remove(raw);
             _decorations.Remove(raw); _decorationItems.Remove(raw);
             // Retiring a weapon is expected: the replacement callback waits for
             // this complete handle to become invalid before granting the new one.
@@ -182,6 +188,8 @@ public sealed partial class CustomWeaponsPlugin : BasePlugin, IPluginConfig<Plug
             RegisterListener<Listeners.OnEntitySpawned>(OnEntitySpawned);
             RegisterListener<Listeners.OnTick>(ObserveHeldGrenades);
         }
+        VirtualFunctions.GiveNamedItemFunc.Hook(RecordWeaponGrant, HookMode.Post);
+        _weaponGrantHooked = true;
         AddTimer(Config.RefreshIntervalSeconds, RequestRefresh, TimerFlags.REPEAT);
         // Covers weapons granted by other plugins and joins while an earlier DB read was pending.
         AddTimer(0.5f, () =>
@@ -400,6 +408,33 @@ public sealed partial class CustomWeaponsPlugin : BasePlugin, IPluginConfig<Plug
     }
 
     private static void Tell(CCSPlayerController player, string text) => player.PrintToChat($"[CustomWeapons] {text}");
+
+    private HookResult RecordWeaponGrant(DynamicHook hook)
+    {
+        if (!_active || _lifecycle?.MapReady != true) return HookResult.Continue;
+        var weapon = hook.GetReturn<CBasePlayerWeapon>();
+        if (weapon is not { IsValid: true } || weapon.DesignerName?.StartsWith("weapon_", StringComparison.Ordinal) != true)
+            return HookResult.Continue;
+        var pawn = hook.GetParam<CCSPlayer_ItemServices>(0)?.Pawn.Value;
+        if (pawn is not { IsValid: true } ||
+            pawn.Controller.Value?.As<CCSPlayerController>() is not { IsValid: true, IsBot: false, SteamID: > 0 } player)
+            return HookResult.Continue;
+
+        _issuedWeapons.TryAdd(weapon.EntityHandle.Raw, (player.SteamID, pawn.EntityHandle.Raw));
+        return HookResult.Continue;
+    }
+
+    private bool IsPersonalWeapon(CCSPlayerController player, CBasePlayerWeapon weapon, uint pawn)
+    {
+        if (weapon.OwnerEntity.Raw != pawn ||
+            !_issuedWeapons.TryGetValue(weapon.EntityHandle.Raw, out var recipient) ||
+            recipient != (player.SteamID, pawn))
+            return false;
+
+        var previous = weapon.As<CCSWeaponBase>().PrevOwner.Raw;
+        return previous is 0 or uint.MaxValue;
+    }
+
     private void Schedule(CCSPlayerController? player)
     {
         var session = EnsureSession(player);
@@ -427,7 +462,7 @@ public sealed partial class CustomWeaponsPlugin : BasePlugin, IPluginConfig<Plug
         foreach (var handle in weapons)
         {
             var weapon = handle.Value;
-            if (weapon is not { IsValid: true }) continue;
+            if (weapon is not { IsValid: true } || !IsPersonalWeapon(player, weapon, pawn.EntityHandle.Raw)) continue;
             var raw = weapon.EntityHandle.Raw;
             if (forceWeapon == null && !forceTeam && _applied.ContainsKey(raw))
             {
@@ -585,6 +620,12 @@ public sealed partial class CustomWeaponsPlugin : BasePlugin, IPluginConfig<Plug
     public override void Unload(bool hotReload)
     {
         _active = false;
+        if (_weaponGrantHooked)
+        {
+            VirtualFunctions.GiveNamedItemFunc.Unhook(RecordWeaponGrant, HookMode.Post);
+            _weaponGrantHooked = false;
+        }
+        _issuedWeapons.Clear();
         if (_hudBridge != null) HudBridgeRegistry.Instance.ClearCurrent(_hudBridge);
         CancelHudWaiters();
         var mapReady = _lifecycle?.MapReady == true;

@@ -21,6 +21,59 @@ internal static partial class Program
     private static void Select(CustomWeaponsPlugin plugin, CCSPlayerController player, string? id) => Call(plugin, "Select", player, "weapon_ak47", id);
     private static Weapon CurrentAk(CCSPlayerController player) => (Weapon)player.PlayerPawn.Value!.WeaponServices!.MyWeapons
         .Select(h=>h.Value).Single(w=>w is { IsValid:true } && w.DesignerName=="weapon_ak47")!;
+    private static async Task PickupOriginTests()
+    {
+        var plugin = await Start(false);
+        plugin.Config.CooldownSeconds = 0;
+        var donor = Player(1);
+        var recipient = Player(2);
+        var pawn = recipient.PlayerPawn.Value!;
+        var inventory = pawn.WeaponServices!;
+        var dropped = Give(donor, "weapon_ak47");
+        dropped.AttributeManager.Item.ItemDefinitionIndex = 7;
+        dropped.FallbackPaintKit = 302;
+        dropped.AttributeManager.Item.CustomName = "Donor finish";
+        donor.PlayerPawn.Value!.ItemServices!.DropActivePlayerWeapon(dropped);
+        dropped.OwnerEntity = new(pawn.EntityHandle.Raw);
+        inventory.MyWeapons.Add(new(dropped.EntityHandle.Raw));
+        inventory.ActiveWeapon = new(dropped.EntityHandle.Raw);
+        Select(plugin, recipient, "gun");
+        plugin.Fire(new EventItemPickup { Userid = recipient, Defindex = 7 });
+        Equip(plugin, recipient);
+        Safety(plugin)();
+        Server.DrainFrames();
+        Check(dropped.IsValid && dropped.Writes == 0 && recipient.Grants == 0 && dropped.FallbackPaintKit == 302 &&
+              dropped.AttributeManager.Item.CustomName == "Donor finish", "Recipient selection preserves another player's picked-up rifle");
+
+        inventory.MyWeapons.Clear();
+        var ground = new Weapon { DesignerName = "weapon_ak47", OwnerEntity = new(pawn.EntityHandle.Raw) };
+        ground.AttributeManager.Item.ItemDefinitionIndex = 7;
+        inventory.MyWeapons.Add(new(ground.EntityHandle.Raw));
+        inventory.ActiveWeapon = new(ground.EntityHandle.Raw);
+        plugin.Fire(new EventItemPickup { Userid = recipient, Defindex = 7 });
+        Server.DrainFrames();
+        Safety(plugin)();
+        Check(ground.IsValid && ground.Writes == 0 && recipient.Grants == 0, "Map pickup with no grant remains stock");
+
+        inventory.MyWeapons.Clear();
+        var reclaimed = Give(recipient, "weapon_ak47");
+        reclaimed.AttributeManager.Item.ItemDefinitionIndex = 7;
+        pawn.ItemServices!.DropActivePlayerWeapon(reclaimed);
+        reclaimed.OwnerEntity = new(pawn.EntityHandle.Raw);
+        inventory.MyWeapons.Add(new(reclaimed.EntityHandle.Raw));
+        inventory.ActiveWeapon = new(reclaimed.EntityHandle.Raw);
+        plugin.Fire(new EventItemPickup { Userid = recipient, Defindex = 7 });
+        Server.DrainFrames();
+        Check(reclaimed.IsValid && reclaimed.Writes == 0 && recipient.Grants == 0, "Picking up a previously dropped personal rifle retains its finish");
+
+        inventory.MyWeapons.Clear();
+        var issued = Give(recipient, "weapon_ak47");
+        issued.AttributeManager.Item.ItemDefinitionIndex = 7;
+        Safety(plugin)();
+        Server.DrainFrames();
+        Check(CurrentAk(recipient).Model == "models/gun.vmdl" && recipient.Grants == 1, "A fresh personal grant still applies the selected model");
+        plugin.Unload(false);
+    }
     private static async Task HeldRefreshTests()
     {
         {
@@ -151,6 +204,10 @@ internal static partial class Program
             Check(second.Grants==1 && !carried.IsValid && fresh.FallbackPaintKit==302 && fresh.AttributeManager.Item.AccountID==111 &&
                 fresh.AttributeManager.Item.CustomName=="transferred" && fresh.AttributeManager.Item.AttributeList.Attributes[0].Value==302,
                 "New owner retains actual transferred item appearance rather than recipient preference");
+            plugin.Config.CooldownSeconds = 0;
+            Select(plugin, second, null);
+            Server.DrainFrames();
+            Check(second.Grants == 1 && fresh.Model == "models/gun.vmdl", "Recipient reset cannot change a transferred custom model");
             plugin.Unload(false);
         }
         {

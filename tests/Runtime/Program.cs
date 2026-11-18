@@ -73,6 +73,7 @@ internal static partial class Program
     {
         var pawn = new Pawn();
         var player = new CCSPlayerController { Slot = slot, SteamID = 76561198000000000UL + (uint)slot, PlayerPawn = new(pawn.EntityHandle.Raw) };
+        pawn.Controller = new(player.EntityHandle.Raw);
         Utilities.Players.Add(player);
         return player;
     }
@@ -82,6 +83,7 @@ internal static partial class Program
         var services = player.PlayerPawn.Value!.WeaponServices!;
         services.MyWeapons.Add(new(weapon.EntityHandle.Raw));
         services.ActiveWeapon = new(weapon.EntityHandle.Raw);
+        CounterStrikeSharp.API.Modules.Memory.VirtualFunctions.GiveNamedItemFunc.Invoke(player.PlayerPawn.Value!.ItemServices!, weapon);
         return weapon;
     }
     private static Action Safety(CustomWeaponsPlugin plugin) => plugin.Timers.Single(t => t.Interval == 0.5f).Callback;
@@ -197,6 +199,7 @@ internal static partial class Program
         await MapRefreshTest();
 #if HELD_REFRESH
         await HeldRefreshTests();
+        await PickupOriginTests();
 #endif
 #if WEBSITE_SELECTIONS
         await WebsiteTests();
