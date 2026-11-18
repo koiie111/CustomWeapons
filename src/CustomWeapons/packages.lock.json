@@ -404,6 +404,9 @@
         "dependencies": {
           "MySqlConnector": "[2.6.2, )"
         }
+      },
+      "customweapons.hud.api": {
+        "type": "Project"
       }
     }
   }

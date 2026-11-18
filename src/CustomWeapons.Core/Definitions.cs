@@ -33,13 +33,17 @@ public sealed record WebsiteSelection(string SteamId, string Weapon, string Mode
 
 public sealed class DatabaseSnapshot
 {
+    public string? DatabaseServerUuid { get; }
+    public string? DatabaseName { get; }
     public IReadOnlyDictionary<string, CatalogEntry> Catalog { get; }
     public IReadOnlyDictionary<string, AccessRow[]> Access { get; }
     public string[] Conflicts { get; }
     public IReadOnlyDictionary<(string SteamId, int Team, string Weapon), WebsiteSelection> WebsiteSelections { get; }
 
-    public DatabaseSnapshot(IEnumerable<CatalogRow> catalog, IEnumerable<AccessRow> access, IEnumerable<WebsiteSelection>? selections = null)
+    public DatabaseSnapshot(IEnumerable<CatalogRow> catalog, IEnumerable<AccessRow> access, IEnumerable<WebsiteSelection>? selections = null, string? databaseServerUuid = null, string? databaseName = null)
     {
+        DatabaseServerUuid = databaseServerUuid;
+        DatabaseName = databaseName;
         var groups = catalog.GroupBy(x => x.Model, StringComparer.Ordinal).ToArray();
         Conflicts = groups.Where(g => g.Select(x => (x.Name, x.Active)).Distinct().Count() > 1)
             .Select(g => g.Key).ToArray();
