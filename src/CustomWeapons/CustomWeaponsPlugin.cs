@@ -67,6 +67,26 @@ public sealed partial class CustomWeaponsPlugin : BasePlugin, IPluginConfig<Plug
     private bool _trackGrenades;
     private bool _weaponGrantHooked;
     private static double Now => Stopwatch.GetTimestamp() / (double)Stopwatch.Frequency;
+    private const string MapResourceHandoff = "4ill.CustomWeapons.MapResourceHandoff";
+
+    private bool RestoreMapResources()
+    {
+        // The handoff is a snapshot of the outgoing plugin's resource manifest
+        // for this process and map. It cannot add models to the engine manifest.
+        // The tuple contains only shared runtime types, so it does not retain the old plugin context.
+        var data = AppDomain.CurrentDomain.GetData(MapResourceHandoff);
+        AppDomain.CurrentDomain.SetData(MapResourceHandoff, null);
+        if (data is not ValueTuple<string, int, float, double, string[]> handoff) return false;
+        var (map, tick, mapTime, engineTime, models) = handoff;
+        if (map != Server.MapName || tick > Server.TickCount || !float.IsFinite(mapTime) || mapTime > Server.CurrentTime ||
+            !double.IsFinite(engineTime) || Server.EngineTime - engineTime is < 0 or > 60 || models is not { Length: > 0 })
+            return false;
+        var previous = models.ToHashSet(StringComparer.Ordinal);
+        foreach (var model in Config.Weapons.Values.SelectMany(weapon => weapon.Skins.Values).Select(skin => skin.Model))
+            if (previous.Contains(model)) _precached.Add(model);
+        if (_precached.Count > 0) RebuildHudModels();
+        return _precached.Count > 0;
+    }
 
     public void OnConfigParsed(PluginConfig config)
     {
@@ -87,6 +107,7 @@ public sealed partial class CustomWeaponsPlugin : BasePlugin, IPluginConfig<Plug
         _selections = new SelectionStore(Path.Combine(ModuleDirectory, "data", "selections.json"), Config.SaveSelections,
             ex => Logger.LogError("Selection storage error ({Type}). Check data directory permissions and backups.", ex.GetType().Name));
         _active = true;
+        var carriedResources = hotReload && RestoreMapResources();
         _lifecycle = new RuntimeLifecycle(InitializeRuntime, RefreshPlayers);
         RegisterListener<Listeners.OnMapStart>(_ => _lifecycle.MapStarted());
         RegisterListener<Listeners.OnServerPrecacheResources>(manifest =>
@@ -123,7 +144,8 @@ public sealed partial class CustomWeaponsPlugin : BasePlugin, IPluginConfig<Plug
         Capabilities.RegisterPluginCapability(new PluginCapability<IHudBridge>(HudBridgeRegistry.CapabilityName), HudBridgeRegistry.Provider);
         _hudBridge = new HudBridge(this);
         HudBridgeRegistry.Instance.SetCurrent(_hudBridge);
-        if (hotReload) Logger.LogWarning("CustomWeapons loaded mid-map: change map to precache custom models before applying skins.");
+        if (hotReload && !carriedResources) Logger.LogWarning("CustomWeapons loaded mid-map: change map to precache custom models before applying skins.");
+        if (carriedResources) Logger.LogInformation("Recovered {Count} precached CustomWeapons models for the current map.", _precached.Count);
         Logger.LogInformation("CustomWeapons {Version} loaded; waiting for map readiness.", ModuleVersion);
     }
 

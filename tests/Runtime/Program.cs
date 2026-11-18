@@ -94,8 +94,37 @@ internal static partial class Program
     private static void MapEnd(CustomWeaponsPlugin plugin) => ((Listeners.OnMapEnd)plugin.ListenersByType[typeof(Listeners.OnMapEnd)])();
     private static void Disconnect(CustomWeaponsPlugin plugin, int slot) => ((Listeners.OnClientDisconnect)plugin.ListenersByType[typeof(Listeners.OnClientDisconnect)])(slot);
 
+    private static void MapResourceHandoffTests()
+    {
+        var plugin = new CustomWeaponsPlugin();
+        plugin.OnConfigParsed(new PluginConfig());
+        const string key = "4ill.CustomWeapons.MapResourceHandoff";
+        try
+        {
+            var model = plugin.Config.Weapons.Values.First().Skins.Values.First().Model;
+            void Write(string map, int tick, double time) => AppDomain.CurrentDomain.SetData(key,
+                (map, tick, Server.CurrentTime, time, new[] { model, "unconfigured.vmdl" }));
+            Check(Call(plugin, "RestoreMapResources") is false, "No handoff leaves normal precaching in charge");
+            Write("another-map", Server.TickCount, Server.EngineTime);
+            Check(Call(plugin, "RestoreMapResources") is false, "Handoff belongs to a different map");
+            Write(Server.MapName, Server.TickCount + 1, Server.EngineTime);
+            Check(Call(plugin, "RestoreMapResources") is false, "Handoff cannot cross a reset map clock");
+            Write(Server.MapName, Server.TickCount, Server.EngineTime - 61);
+            Check(Call(plugin, "RestoreMapResources") is false, "An expired handoff is ignored");
+            Write(Server.MapName, Server.TickCount, Server.EngineTime);
+            Check(Call(plugin, "RestoreMapResources") is true && ((HashSet<string>)Get(plugin, "_precached")!).SetEquals([model]),
+                "Same-map reload retains only previously precached configured resources");
+            Check(AppDomain.CurrentDomain.GetData(key) is null, "Handoff is consumed exactly once");
+        }
+        finally
+        {
+            AppDomain.CurrentDomain.SetData(key, null);
+        }
+    }
+
     private static async Task Tests()
     {
+        MapResourceHandoffTests();
         foreach (var enabled in new[] { false, true })
         {
             var plugin = await Start(enabled);

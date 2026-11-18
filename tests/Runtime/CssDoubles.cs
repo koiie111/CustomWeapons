@@ -22,6 +22,9 @@ namespace CounterStrikeSharp.API
         public static readonly ConcurrentQueue<Action> World = new();
         public static readonly Queue<Action> Frames = new();
         public static int TickCount;
+        public static string MapName { get; set; } = "fixture";
+        public static double EngineTime => TickCount / 64d;
+        public static float CurrentTime => TickCount / 64f;
         public static readonly SortedDictionary<int, List<Action>> Ticks = [];
         public static void RunOnTick(int tick, Action action)
         {
