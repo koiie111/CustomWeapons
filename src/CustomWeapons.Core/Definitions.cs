@@ -31,6 +31,8 @@ public sealed record CatalogRow(string Model, string? Name, int Active);
 public sealed record CatalogEntry(string? Name, bool Active);
 public sealed record WebsiteSelection(string SteamId, string Weapon, string Model, long Revision, int Team = 0);
 
+public sealed record SavedWeaponFinish(string SteamId, int Team, int Definition, int Paint, string Name);
+
 public sealed class DatabaseSnapshot
 {
     public string? DatabaseServerUuid { get; }
@@ -40,10 +42,13 @@ public sealed class DatabaseSnapshot
     public string[] Conflicts { get; }
     public IReadOnlyDictionary<(string SteamId, int Team, string Weapon), WebsiteSelection> WebsiteSelections { get; }
 
-    public DatabaseSnapshot(IEnumerable<CatalogRow> catalog, IEnumerable<AccessRow> access, IEnumerable<WebsiteSelection>? selections = null, string? databaseServerUuid = null, string? databaseName = null)
+    public IReadOnlyDictionary<(string SteamId, int Team, int Definition), SavedWeaponFinish> WeaponFinishes { get; }
+
+    public DatabaseSnapshot(IEnumerable<CatalogRow> catalog, IEnumerable<AccessRow> access, IEnumerable<WebsiteSelection>? selections = null, string? databaseServerUuid = null, string? databaseName = null, IEnumerable<SavedWeaponFinish>? weaponFinishes = null)
     {
         DatabaseServerUuid = databaseServerUuid;
         DatabaseName = databaseName;
+        WeaponFinishes = (weaponFinishes ?? []).ToDictionary(row => (row.SteamId, row.Team, row.Definition));
         var groups = catalog.GroupBy(x => x.Model, StringComparer.Ordinal).ToArray();
         Conflicts = groups.Where(g => g.Select(x => (x.Name, x.Active)).Distinct().Count() > 1)
             .Select(g => g.Key).ToArray();

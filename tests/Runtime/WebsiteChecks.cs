@@ -1,5 +1,6 @@
 #if WEBSITE_SELECTIONS
 using System.Collections;
+using System.Reflection;
 using System.Collections.Concurrent;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
@@ -35,12 +36,20 @@ internal static partial class Program
         await WebsiteDecorationTests();
         var disabled=await Start(false);Check(disabled.Commands.Count==0,"Website flag off adds no refresh hooks");disabled.Unload(false);
         var plugin=await Start(false,true);plugin.Config.CooldownSeconds=0;
-        Check(plugin.Commands.Keys.Order().SequenceEqual(new[]{"css_wp","say","say_team"}),"Website hooks registered once");
+        Check(plugin.Commands.Keys.Order().SequenceEqual(new[]{"css_wp","say","say_team","wp_refresh_request"}),"Website hooks registered once");
         var player=Player(1);Give(player,"weapon_ak47");Safety(plugin)();
         await Until(() => !(bool)Get(plugin,"_refreshRunning")!);
         var session=((IDictionary)Get(plugin,"_sessions")!)[1]!;
         var access=(AccessState)session.GetType().GetProperty("Access")!.GetValue(session)!;
         var id=player.SteamID.ToString();
+        var finishOptions = CustomFinish.Catalog.Where(finish => finish.Weapon == "weapon_ak47").ToArray();
+        var selectedFinish = plugin.GetType().GetMethod("SelectedFinish", BindingFlags.Static | BindingFlags.NonPublic)!;
+        access.Succeed(new DatabaseSnapshot([], [], weaponFinishes: [new(id, 0, 7, 2, "Bluegem"), new(id, 3, 7, 3, "Nebula")]));
+        Check(((CustomFinish?)selectedFinish.Invoke(null, [session, finishOptions]))?.Key == "nebula_7",
+            "The custom-model menu marks the current side's saved finish");
+        access.Succeed(new DatabaseSnapshot([], [], weaponFinishes: [new(id, 0, 7, 2, "Bluegem"), new(id, 3, 7, 44, "")]));
+        Check(selectedFinish.Invoke(null, [session, finishOptions]) == null,
+            "An ordinary side-specific skin must not inherit the global finish marker");
         var snapshot=new DatabaseSnapshot([],[],[new(id,"weapon_ak47","gun",1,0),new(id,"weapon_ak47","",2,3)]);
         access.Succeed(snapshot);
         Check((string?)Call(plugin,"Selected",session,"weapon_ak47")=="","Explicit CT stock overrides legacy global choice");
@@ -90,12 +99,21 @@ internal static partial class Program
         plugin.Commands["css_wp"](replacement,new CommandInfo("css_wp"));await Until(()=>repo.Reads>reads);await Until(() => !(bool)Get(plugin,"_refreshRunning")!);
         reads=repo.Reads;plugin.Commands["say_team"](replacement,new CommandInfo("say_team","!wp"));await Task.Delay(10);
         Check(repo.Reads==reads,"Duplicate !wp across command paths is rate limited");
+        replacementSession.GetType().GetField("NextWebsiteRefresh")!.SetValue(replacementSession, 0.0);
+        var webRefresh = plugin.Commands["wp_refresh_request"];
+        var valid = new CommandInfo("wp_refresh_request", replacement.SteamID.ToString(), new string('a', 32));
+        webRefresh(replacement, valid);
+        webRefresh(null, new CommandInfo("wp_refresh_request", replacement.SteamID.ToString(), "invalid"));
+        Check(repo.Reads == reads, "Untrusted and malformed refreshes must not query MySQL");
+        webRefresh(null, valid);
+        await Until(() => repo.Reads > reads);
+        await Until(() => !(bool)Get(plugin, "_refreshRunning")!);
         var selections=(SelectionStore)Get(plugin,"_selections")!;selections.Set(replacement.SteamID.ToString(),"weapon_ak47","gun");
         repo.ImportFailure=true;Call(plugin,"RequestRefresh");await Until(() => !(bool)Get(plugin,"_refreshRunning")!);
         var replacementAccess=(AccessState)replacementSession.GetType().GetProperty("Access")!.GetValue(replacementSession)!;
         Check(repo.Imports>0&&!replacementAccess.Ready,"Failed legacy import cannot publish a successful access snapshot");
         MapEnd(plugin);((Listeners.OnMapStart)plugin.ListenersByType[typeof(Listeners.OnMapStart)])("next");
-        Check(plugin.Commands.Count==3,"Map change does not duplicate refresh command hooks");plugin.Unload(false);
+        Check(plugin.Commands.Count==4,"Map change does not duplicate refresh command hooks");plugin.Unload(false);
     }
 
     private static async Task WebsiteTeamIsolationTests()

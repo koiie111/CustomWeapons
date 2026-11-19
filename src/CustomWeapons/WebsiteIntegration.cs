@@ -37,6 +37,18 @@ public sealed partial class CustomWeaponsPlugin
             RequestRefresh();
         }
         AddCommandListener("css_wp", (player, _) => { Refresh(player); return HookResult.Continue; });
+        // The website dispatches a tracked server command, not the player's !wp alias.
+        AddCommandListener("wp_refresh_request", (player, info) =>
+        {
+            if (player != null || info.ArgCount != 3) return HookResult.Continue;
+            var steamId = info.GetArg(1);
+            var request = info.GetArg(2);
+            if (steamId.Length != 17 || !ulong.TryParse(steamId, out var account) ||
+                request.Length != 32 || !request.All(Uri.IsHexDigit)) return HookResult.Continue;
+            Refresh(Utilities.GetPlayers().FirstOrDefault(candidate => candidate.IsValid && candidate.SteamID == account));
+            return HookResult.Continue;
+        });
+
         foreach (var command in new[] { "say", "say_team" }) AddCommandListener(command, (player, info) =>
         {
             if (info.ArgCount > 1 && info.GetArg(1).Trim().ToLowerInvariant() is "!wp" or "/wp") Refresh(player);

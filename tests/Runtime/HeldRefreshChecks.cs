@@ -21,6 +21,32 @@ internal static partial class Program
     private static void Select(CustomWeaponsPlugin plugin, CCSPlayerController player, string? id) => Call(plugin, "Select", player, "weapon_ak47", id);
     private static Weapon CurrentAk(CCSPlayerController player) => (Weapon)player.PlayerPawn.Value!.WeaponServices!.MyWeapons
         .Select(h=>h.Value).Single(w=>w is { IsValid:true } && w.DesignerName=="weapon_ak47")!;
+    private static void CustomFinishSwitchTests()
+    {
+        Entities.All.Clear();
+        var (_, ak, _) = Armed(1);
+        var item = ak.AttributeManager.Item;
+        item.CustomName = "Bluegem";
+        ak.FallbackPaintKit = 2;
+        ak.FallbackSeed = 17;
+        ak.FallbackWear = 0.01f;
+        var saved = WeaponState.SuppressDecorations(ak);
+        Check(saved?.CustomFinish?.Name == "Bluegem" && item.CustomName == "" && ak.FallbackPaintKit == 0,
+            "Selected custom model must hide the custom finish");
+        WeaponState.RestoreDecorations(ak, saved!);
+        Check(item.CustomName == "Bluegem" && ak.FallbackPaintKit == 2 && ak.FallbackSeed == 17 && ak.FallbackWear == 0.01f,
+            "Returning to the stock model must restore the custom finish");
+        saved = WeaponState.SuppressDecorations(ak);
+        item.CustomName = "New paint";
+        ak.FallbackPaintKit = 44;
+        WeaponState.RestoreDecorations(ak, saved!);
+        Check(item.CustomName == "New paint" && ak.FallbackPaintKit == 44,
+            "Restoring an older finish must not override a new paint");
+        item.CustomName = "Named donor";
+        ak.FallbackPaintKit = 2;
+        Check(WeaponState.SuppressDecorations(ak) == null && item.CustomName == "Named donor" && ak.FallbackPaintKit == 2,
+            "Ordinary paint and its name must stay intact");
+    }
     private static async Task PickupOriginTests()
     {
         var plugin = await Start(false);

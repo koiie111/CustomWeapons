@@ -17,13 +17,15 @@ public sealed partial class MySqlRepository : IAccessRepository, IWebsiteSelecti
     private readonly string _connectionString;
     private readonly uint _timeout;
     private readonly bool _websiteSelections;
+    private readonly bool _readWeaponFinishes;
 
-    public MySqlRepository(DatabaseOptions options, bool websiteSelections = false)
+    public MySqlRepository(DatabaseOptions options, bool websiteSelections = false, bool readWeaponFinishes = false)
     {
         if (!Enum.TryParse<MySqlSslMode>(options.SslMode, true, out var sslMode))
             throw new ArgumentException("Unknown Database.SslMode");
         _timeout = Math.Clamp(options.TimeoutSeconds, 1, 60);
         _websiteSelections = websiteSelections;
+        _readWeaponFinishes = websiteSelections && readWeaponFinishes;
         var secret = string.IsNullOrWhiteSpace(options.PasswordEnvironmentVariable)
             ? null : Environment.GetEnvironmentVariable(options.PasswordEnvironmentVariable);
         _connectionString = new MySqlConnectionStringBuilder
@@ -66,6 +68,7 @@ public sealed partial class MySqlRepository : IAccessRepository, IWebsiteSelecti
 
         var access = new List<AccessRow>();
         var selections = new List<WebsiteSelection>();
+        var finishes = new List<SavedWeaponFinish>();
         if (steamIds.Count > 0)
         {
             await using var command = connection.CreateCommand();
@@ -91,7 +94,23 @@ public sealed partial class MySqlRepository : IAccessRepository, IWebsiteSelecti
             await using var reader = await command.ExecuteReaderAsync(ct);
             while (await reader.ReadAsync(ct)) selections.Add(new(reader.GetString(0), reader.GetString(1), reader.GetString(2), reader.GetInt64(3), reader.GetInt32(4)));
         }
-        return new(catalog, access, selections, serverUuid, databaseName);
+        if (_readWeaponFinishes && steamIds.Count > 0)
+        {
+            await using var command = connection.CreateCommand();
+            var parameters = steamIds.Distinct(StringComparer.Ordinal).Select((id, index) =>
+            {
+                var name = "@steam" + index;
+                command.Parameters.AddWithValue(name, id);
+                return name;
+            }).ToArray();
+            var definitions = string.Join(',', CustomFinish.Catalog.Select(finish => finish.Definition).Distinct());
+            command.CommandText = $"SELECT steamid,weapon_team,weapon_defindex,weapon_paint_id,weapon_nametag FROM wp_player_skins WHERE steamid IN ({string.Join(',', parameters)}) AND weapon_team IN (0,2,3) AND weapon_defindex IN ({definitions})";
+            await using var reader = await command.ExecuteReaderAsync(ct);
+            while (await reader.ReadAsync(ct))
+                finishes.Add(new(reader.GetString(0), reader.GetInt32(1), reader.GetInt32(2), reader.GetInt32(3),
+                    reader.IsDBNull(4) ? "" : reader.GetString(4)));
+        }
+        return new(catalog, access, selections, serverUuid, databaseName, finishes);
     }
 }
 
