@@ -228,6 +228,7 @@ internal static partial class Program
         await MapRefreshTest();
 #if HELD_REFRESH
         await HeldRefreshTests();
+        CustomFinishSwitchTests();
         await PickupOriginTests();
 #endif
 #if WEBSITE_SELECTIONS

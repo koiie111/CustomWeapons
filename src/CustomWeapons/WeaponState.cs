@@ -10,7 +10,8 @@ namespace CustomWeapons;
 internal sealed class WeaponState
 {
     internal sealed record Attribute(ushort Index, float Value, float Initial, int Currency, bool Bonus);
-    internal sealed record Decorations(Attribute[] Attributes, Attribute[] Dynamic);
+    internal sealed record Finish(int Paint, int Seed, float Wear, string Name);
+    internal sealed record Decorations(Attribute[] Attributes, Attribute[] Dynamic, Finish? CustomFinish = null);
     private static readonly Dictionary<ushort, string> AttributeNames = JsonSerializer.Deserialize<Dictionary<ushort, string>>(
         typeof(WeaponState).Assembly.GetManifestResourceStream("CustomWeapons.econ-attribute-names.json")!)!;
     private static MemoryFunctionVoid<nint, string, float>? _writeAttribute;
@@ -72,11 +73,24 @@ internal sealed class WeaponState
         // Validate both complete lists before touching either one. Every other
         // attribute (especially live kill-eater bits) stays byte-for-byte intact.
         var attributes = Capture(item.AttributeList); var dynamic = Capture(item.NetworkedDynamicAttributes);
-        var saved = new Decorations(attributes.Where(IsDecoration).ToArray(), dynamic.Where(IsDecoration).ToArray());
-        if (saved.Attributes.Length + saved.Dynamic.Length == 0) return null;
+        var paint = weapon.FallbackPaintKit;
+        var name = item.CustomName;
+        Finish? finish = (paint == 3 && name == "Nebula") || (paint == 2 && name == "Bluegem")
+            ? new(paint, weapon.FallbackSeed, weapon.FallbackWear, name) : null;
+        bool Hidden(Attribute attr) => IsDecoration(attr) || (finish != null && IsPaintAttribute(attr));
+        var saved = new Decorations(attributes.Where(Hidden).ToArray(), dynamic.Where(Hidden).ToArray(), finish);
+        if (finish == null && saved.Attributes.Length + saved.Dynamic.Length == 0) return null;
         _writeAttribute ??= new(GameData.GetSignature("CW_SetOrAddAttributeValueByName"));
-        Restore(item.AttributeList, attributes.Where(a => !IsDecoration(a)).ToArray());
-        Restore(item.NetworkedDynamicAttributes, dynamic.Where(a => !IsDecoration(a)).ToArray());
+        Restore(item.AttributeList, attributes.Where(a => !Hidden(a)).ToArray());
+        Restore(item.NetworkedDynamicAttributes, dynamic.Where(a => !Hidden(a)).ToArray());
+        if (finish != null)
+        {
+            item.CustomName = "";
+            weapon.FallbackPaintKit = 0;
+            weapon.FallbackSeed = 0;
+            weapon.FallbackWear = 0;
+            NotifyFinish(weapon);
+        }
         Utilities.SetStateChanged(weapon, nameof(CEconEntity), "m_AttributeManager");
         return saved;
     }
@@ -84,11 +98,32 @@ internal sealed class WeaponState
     internal static void RestoreDecorations(CBasePlayerWeapon weapon, Decorations saved)
     {
         var item = weapon.AttributeManager.Item;
-        var attributes = Capture(item.AttributeList).Where(a => !IsDecoration(a)).Concat(saved.Attributes).ToArray();
-        var dynamic = Capture(item.NetworkedDynamicAttributes).Where(a => !IsDecoration(a)).Concat(saved.Dynamic).ToArray();
+        var finish = saved.CustomFinish;
+        bool restoreFinish = finish != null && weapon.FallbackPaintKit == 0 && string.IsNullOrEmpty(item.CustomName);
+        bool Replace(Attribute attr) => IsDecoration(attr) || (restoreFinish && IsPaintAttribute(attr));
+        var attributes = Capture(item.AttributeList).Where(a => !Replace(a)).Concat(saved.Attributes.Where(Replace)).ToArray();
+        var dynamic = Capture(item.NetworkedDynamicAttributes).Where(a => !Replace(a)).Concat(saved.Dynamic.Where(Replace)).ToArray();
         _writeAttribute ??= new(GameData.GetSignature("CW_SetOrAddAttributeValueByName"));
         Restore(item.AttributeList, attributes); Restore(item.NetworkedDynamicAttributes, dynamic);
+        if (restoreFinish && finish != null)
+        {
+            item.CustomName = finish.Name;
+            weapon.FallbackPaintKit = finish.Paint;
+            weapon.FallbackSeed = finish.Seed;
+            weapon.FallbackWear = finish.Wear;
+            NotifyFinish(weapon);
+        }
         Utilities.SetStateChanged(weapon, nameof(CEconEntity), "m_AttributeManager");
+    }
+
+    private static bool IsPaintAttribute(Attribute attr) =>
+        AttributeNames[attr.Index] is "set item texture prefab" or "set item texture seed" or "set item texture wear";
+
+    private static void NotifyFinish(CBasePlayerWeapon weapon)
+    {
+        Utilities.SetStateChanged(weapon, nameof(CEconEntity), "m_nFallbackPaintKit");
+        Utilities.SetStateChanged(weapon, nameof(CEconEntity), "m_nFallbackSeed");
+        Utilities.SetStateChanged(weapon, nameof(CEconEntity), "m_flFallbackWear");
     }
 
     public void Restore(CCSWeaponBase weapon, CPlayer_WeaponServices services)

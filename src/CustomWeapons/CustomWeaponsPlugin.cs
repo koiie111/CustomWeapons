@@ -20,7 +20,7 @@ namespace CustomWeapons;
 public sealed partial class CustomWeaponsPlugin : BasePlugin, IPluginConfig<PluginConfig>
 {
     public override string ModuleName => "CustomWeapons";
-    public override string ModuleVersion => "1.0.5-skins3d.7-hud.2";
+    public override string ModuleVersion => "1.0.5-skins3d.7-hud.finish.5";
     public override string ModuleAuthor => "koiie111";
     public override string ModuleDescription => "Custom weapon models with MySQL access and local selections";
     public PluginConfig Config { get; set; } = new();
@@ -103,7 +103,8 @@ public sealed partial class CustomWeaponsPlugin : BasePlugin, IPluginConfig<Plug
 
     public override void Load(bool hotReload)
     {
-        _repository = new MySqlRepository(Config.Database, Config.WebsiteSelectionsEnabled);
+        _repository = new MySqlRepository(Config.Database, Config.WebsiteSelectionsEnabled,
+            Config.CustomFinishesEnabled || Config.CustomFinishPilotSteamId.Length == 17);
         _selections = new SelectionStore(Path.Combine(ModuleDirectory, "data", "selections.json"), Config.SaveSelections,
             ex => Logger.LogError("Selection storage error ({Type}). Check data directory permissions and backups.", ex.GetType().Name));
         _active = true;
@@ -374,6 +375,8 @@ public sealed partial class CustomWeaponsPlugin : BasePlugin, IPluginConfig<Plug
         foreach (var (weapon, definition) in Config.Weapons)
             menu.AddMenuOption(Html(string.IsNullOrWhiteSpace(definition.Name) ? weapon : definition.Name),
                 (p, _) => OpenSkins(p, weapon));
+        foreach (var group in FinishOptions(session).Where(f => !Config.Weapons.ContainsKey(f.Weapon)).GroupBy(f => f.Weapon))
+            menu.AddMenuOption(Html(group.First().WeaponLabel), (p, _) => OpenSkins(p, group.Key));
         ShowMenu(player, menu);
     }
 
@@ -388,22 +391,31 @@ public sealed partial class CustomWeaponsPlugin : BasePlugin, IPluginConfig<Plug
     private void OpenSkins(CCSPlayerController player, string weapon)
     {
         var session = EnsureSession(player);
-        if (session == null || !Config.Weapons.TryGetValue(weapon, out var definition)) return;
-        var menu = new CenterHtmlMenu(Html(definition.Name), this);
-        var selected = Selected(session, weapon);
-        menu.AddMenuOption(string.IsNullOrEmpty(selected) ? "✓ Стандартная модель" : "Стандартная модель",
-            (p, _) => Select(p, weapon, null));
-        foreach (var (id, skin) in definition.Skins)
+        if (session == null) return;
+        var finishes = FinishOptions(session).Where(finish => finish.Weapon == weapon).ToArray();
+        Config.Weapons.TryGetValue(weapon, out var definition);
+        if (definition == null && finishes.Length == 0) return;
+        var menu = new CenterHtmlMenu(Html(definition?.Name ?? finishes[0].WeaponLabel), this);
+        var selected = definition == null ? null : Selected(session, weapon);
+        var selectedFinish = string.IsNullOrEmpty(selected) ? SelectedFinish(session, finishes) : null;
+        if (definition != null)
         {
-            if (_catalog?.Catalog.TryGetValue(id, out var row) == true && !row.Active) continue;
-            var allowed = Allowed(session, id, skin);
-            if (!allowed && skin.Hide) continue;
-            var label = Html(SkinRules.DisplayName(skin, id, _catalog));
-            if (selected == id) label = "✓ " + label;
-            if (!allowed) label += " — нет доступа";
-            else if (!_precached.Contains(skin.Model)) label += " — после смены карты";
-            menu.AddMenuOption(label, (p, _) => Select(p, weapon, id), !allowed || !_precached.Contains(skin.Model));
+            menu.AddMenuOption(string.IsNullOrEmpty(selected) && selectedFinish == null ? "✓ Стандартная модель" : "Стандартная модель",
+                (p, _) => Select(p, weapon, null));
+            foreach (var (id, skin) in definition.Skins)
+            {
+                if (_catalog?.Catalog.TryGetValue(id, out var row) == true && !row.Active) continue;
+                var allowed = Allowed(session, id, skin);
+                if (!allowed && skin.Hide) continue;
+                var label = Html(SkinRules.DisplayName(skin, id, _catalog));
+                if (selected == id) label = "✓ " + label;
+                if (!allowed) label += " — нет доступа";
+                else if (!_precached.Contains(skin.Model)) label += " — после смены карты";
+                menu.AddMenuOption(label, (p, _) => Select(p, weapon, id), !allowed || !_precached.Contains(skin.Model));
+            }
         }
+        foreach (var finish in finishes)
+            menu.AddMenuOption((finish == selectedFinish ? "\u2713 " : "") + Html(finish.Name), (p, _) => SelectFinish(p, finish));
         menu.AddMenuOption("← Назад", (p, _) => OpenWeapons(p));
         ShowMenu(player, menu);
     }
@@ -583,7 +595,8 @@ public sealed partial class CustomWeaponsPlugin : BasePlugin, IPluginConfig<Plug
         {
             if (_decorations.TryGetValue(raw, out var before)) saved = new(
                 before.Attributes.Concat(saved.Attributes).GroupBy(a => a.Index).Select(g => g.Last()).ToArray(),
-                before.Dynamic.Concat(saved.Dynamic).GroupBy(a => a.Index).Select(g => g.Last()).ToArray());
+                before.Dynamic.Concat(saved.Dynamic).GroupBy(a => a.Index).Select(g => g.Last()).ToArray(),
+                saved.CustomFinish ?? before.CustomFinish);
             _decorations[raw] = saved;
         }
         _decorationItems[raw] = (itemId, item.AttributeList.Attributes.Count, item.NetworkedDynamicAttributes.Attributes.Count);
@@ -669,4 +682,3 @@ public sealed partial class CustomWeaponsPlugin : BasePlugin, IPluginConfig<Plug
         _grenadeHolders.Clear();
     }
 }
-

@@ -9,6 +9,8 @@ public sealed class PluginConfig : BasePluginConfig
     public double CooldownSeconds { get; set; } = 1;
     public bool SaveSelections { get; set; } = true;
     public bool WebsiteSelectionsEnabled { get; set; }
+    public bool CustomFinishesEnabled { get; set; }
+    public string CustomFinishPilotSteamId { get; set; } = "";
     public float RefreshIntervalSeconds { get; set; } = 60;
     public DatabaseOptions Database { get; set; } = new();
     public Dictionary<string, WeaponDefinition> Weapons { get; set; } = Defaults();
